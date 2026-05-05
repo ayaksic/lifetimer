@@ -98,7 +98,7 @@
     <main class="readout" aria-live="off">
       <div class="center">
         <span class="period" id="period">Hour</span>
-        <span class="percent" id="percent">0.0000000000%</span>
+        <span class="percent" id="percent">0.0000%</span>
       </div>
     </main>
 
@@ -122,6 +122,7 @@
         {
           label: "Hour",
           period: "hour",
+          decimalPlaces: 4,
           range(now) {
             return {
               start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours()),
@@ -132,6 +133,7 @@
         {
           label: "Today",
           period: "day",
+          decimalPlaces: 5,
           range(now) {
             return {
               start: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
@@ -142,6 +144,7 @@
         {
           label: "This Week",
           period: "week",
+          decimalPlaces: 6,
           range(now) {
             const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
             return {
@@ -153,6 +156,7 @@
         {
           label: "This Month",
           period: "month",
+          decimalPlaces: 7,
           range(now) {
             return {
               start: new Date(now.getFullYear(), now.getMonth(), 1),
@@ -163,6 +167,7 @@
         {
           label: "This Year",
           period: "year",
+          decimalPlaces: 8,
           range(now) {
             return {
               start: new Date(now.getFullYear(), 0, 1),
@@ -173,6 +178,7 @@
         {
           label: "Lifetime",
           period: "lifetime",
+          decimalPlaces: 9,
           range() {
             return {
               start: new Date(1985, 3, 17, 3, 41, 0, 0),
@@ -579,7 +585,7 @@
         const page = periods[activePeriod];
         const progress = getProgress(now);
         periodElement.textContent = getPageLabel(page, now);
-        percentElement.textContent = `${(progress * 100).toFixed(10)}%`;
+        percentElement.textContent = `${(progress * 100).toFixed(page.decimalPlaces)}%`;
         draw(page, now, progress);
         requestAnimationFrame(render);
       }
