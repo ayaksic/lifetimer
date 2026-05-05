@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#fbf8f3">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Life Timer">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Life Timer">
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-180.png">
+    <link rel="icon" sizes="192x192" href="icon-192.png">
+    <link rel="icon" sizes="512x512" href="icon-512.png">
+    <title>Life Timer</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --elapsed: #b66a5f;
+        --remaining: #fbf8f3;
+        --live: #d7ff2f;
+        --ink: #161312;
+        --muted: rgba(22, 19, 18, 0.62);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: var(--remaining);
+        color: var(--ink);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        touch-action: pan-y;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      canvas {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100dvh;
+        display: block;
+      }
+
+      .readout {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        pointer-events: none;
+      }
+
+      .center {
+        width: min(92vw, 900px);
+        text-align: center;
+        text-wrap: balance;
+        text-shadow:
+          0 1px 0 rgba(255, 255, 255, 0.64),
+          0 0 18px rgba(255, 255, 255, 0.72);
+        transform: translateY(var(--readout-offset, 0px));
+        transition: transform 160ms ease-out;
+      }
+
+      .period {
+        display: block;
+        margin-bottom: 0.65rem;
+        color: var(--muted);
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: clamp(0.78rem, 2.7vw, 1rem);
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .percent {
+        display: block;
+        font-size: clamp(1.6rem, 8.5vw, 5.4rem);
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: 0;
+        font-variant-numeric: tabular-nums;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="progress" aria-hidden="true"></canvas>
+    <main class="readout" aria-live="off">
+      <div class="center">
+        <span class="period" id="period">Hour</span>
+        <span class="percent" id="percent">0.0000000000%</span>
+      </div>
+    </main>
+
+    <script>
+      const canvas = document.getElementById("progress");
+      const context = canvas.getContext("2d", { alpha: false });
+      const periodElement = document.getElementById("period");
+      const percentElement = document.getElementById("percent");
+      const centerElement = document.querySelector(".center");
+      const colors = {
+        elapsed: "#b66a5f",
+        remaining: "#fbf8f3",
+        live: "#d7ff2f",
+        liveOutline: "#161312",
+      };
+
+      const periods = [
+        {
+          label: "Hour",
+          range(now) {
+            return {
+              start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours()),
+              end: new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours() + 1),
+            };
+          },
+        },
+        {
+          label: "Today",
+          range(now) {
+            return {
+              start: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
+              end: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1),
+            };
+          },
+        },
+        {
+          label: "This Week",
+          range(now) {
+            const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+            return {
+              start,
+              end: new Date(start.getFullYear(), start.getMonth(), start.getDate() + 7),
+            };
+          },
+        },
+        {
+          label: "This Month",
+          range(now) {
+            return {
+              start: new Date(now.getFullYear(), now.getMonth(), 1),
+              end: new Date(now.getFullYear(), now.getMonth() + 1, 1),
+            };
+          },
+        },
+        {
+          label: "This Year",
+          range(now) {
+            return {
+              start: new Date(now.getFullYear(), 0, 1),
+              end: new Date(now.getFullYear() + 1, 0, 1),
+            };
+          },
+        },
+        {
+          label: "Lifetime",
+          range() {
+            return {
+              start: new Date(1985, 3, 17, 3, 41, 0, 0),
+              end: new Date(2065, 3, 17, 3, 41, 0, 0),
+            };
+          },
+        },
+      ];
+
+      let activePeriod = 0;
+      let width = 0;
+      let height = 0;
+      let pointerStartX = 0;
+      let pointerStartY = 0;
+      let pointerStartTime = 0;
+      let pointerTracking = false;
+      let readoutOffset = 0;
+
+      function resizeCanvas() {
+        width = Math.max(1, Math.round(window.innerWidth));
+        height = Math.max(1, Math.round(window.innerHeight));
+        canvas.width = width;
+        canvas.height = height;
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function getProgress(now) {
+        const { start, end } = periods[activePeriod].range(now);
+        return clamp((now - start) / (end - start), 0, 1);
+      }
+
+      function draw(progress) {
+        const totalPixels = width * height;
+        const elapsedPixels = Math.floor(totalPixels * progress);
+        const fullRows = Math.floor(elapsedPixels / width);
+        const partialPixels = elapsedPixels - fullRows * width;
+        const livePixel = Math.min(totalPixels - 1, Math.max(0, elapsedPixels));
+        const liveX = livePixel % width;
+        const liveY = Math.floor(livePixel / width);
+
+        context.fillStyle = colors.remaining;
+        context.fillRect(0, 0, width, height);
+
+        context.fillStyle = colors.elapsed;
+        if (fullRows > 0) {
+          context.fillRect(0, 0, width, fullRows);
+        }
+        if (partialPixels > 0 && fullRows < height) {
+          context.fillRect(0, fullRows, partialPixels, 1);
+        }
+
+        drawLiveMarker(liveX, liveY);
+        positionReadout(liveY);
+      }
+
+      function drawLiveMarker(x, y) {
+        const outer = 7;
+        const inner = 3;
+        const halfOuter = Math.floor(outer / 2);
+        const halfInner = Math.floor(inner / 2);
+
+        context.fillStyle = colors.liveOutline;
+        context.fillRect(
+          clamp(x - halfOuter, 0, width - outer),
+          clamp(y - halfOuter, 0, height - outer),
+          outer,
+          outer,
+        );
+
+        context.fillStyle = colors.live;
+        context.fillRect(
+          clamp(x - halfInner, 0, width - inner),
+          clamp(y - halfInner, 0, height - inner),
+          inner,
+          inner,
+        );
+      }
+
+      function positionReadout(frontierY) {
+        const readoutHeight = centerElement.offsetHeight;
+        const clearance = 26;
+        const viewportHeight = window.innerHeight;
+        const naturalTop = (viewportHeight - readoutHeight) / 2;
+        const naturalBottom = naturalTop + readoutHeight;
+        const collides = frontierY >= naturalTop - clearance && frontierY <= naturalBottom + clearance;
+
+        if (!collides) {
+          setReadoutOffset(0);
+          return;
+        }
+
+        const aboveTop = frontierY - clearance - readoutHeight;
+        const belowTop = frontierY + clearance;
+        const canFitAbove = aboveTop >= 16;
+        const canFitBelow = belowTop + readoutHeight <= viewportHeight - 16;
+
+        let targetTop = naturalTop;
+        if (canFitAbove && frontierY >= viewportHeight / 2) {
+          targetTop = aboveTop;
+        } else if (canFitBelow) {
+          targetTop = belowTop;
+        } else if (canFitAbove) {
+          targetTop = aboveTop;
+        }
+
+        setReadoutOffset(Math.round(targetTop - naturalTop));
+      }
+
+      function setReadoutOffset(offset) {
+        if (offset === readoutOffset) return;
+        readoutOffset = offset;
+        centerElement.style.setProperty("--readout-offset", `${offset}px`);
+      }
+
+      function render() {
+        const now = new Date();
+        const progress = getProgress(now);
+        periodElement.textContent = periods[activePeriod].label;
+        percentElement.textContent = `${(progress * 100).toFixed(10)}%`;
+        draw(progress);
+        requestAnimationFrame(render);
+      }
+
+      function showNextPeriod() {
+        activePeriod = (activePeriod + 1) % periods.length;
+      }
+
+      function showPreviousPeriod() {
+        activePeriod = (activePeriod - 1 + periods.length) % periods.length;
+      }
+
+      window.addEventListener("resize", resizeCanvas);
+      window.addEventListener("orientationchange", resizeCanvas);
+
+      window.addEventListener("pointerdown", (event) => {
+        pointerStartX = event.clientX;
+        pointerStartY = event.clientY;
+        pointerStartTime = performance.now();
+        pointerTracking = true;
+      });
+
+      window.addEventListener("pointerup", (event) => {
+        if (!pointerTracking) return;
+        pointerTracking = false;
+
+        const deltaX = event.clientX - pointerStartX;
+        const deltaY = event.clientY - pointerStartY;
+        const elapsed = performance.now() - pointerStartTime;
+        const isSwipe = Math.abs(deltaX) > 52 && Math.abs(deltaX) > Math.abs(deltaY) * 1.35 && elapsed < 700;
+
+        if (!isSwipe) return;
+        if (deltaX > 0) {
+          showPreviousPeriod();
+        } else {
+          showNextPeriod();
+        }
+      });
+
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowRight") showPreviousPeriod();
+        if (event.key === "ArrowLeft") showNextPeriod();
+      });
+
+      resizeCanvas();
+      render();
+    </script>
+  </body>
+</html>
