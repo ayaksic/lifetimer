@@ -24,6 +24,7 @@ struct LifeTimerHourLiveActivity: Widget {
                     HourProgressBar(
                         start: context.attributes.hourStart,
                         end: context.attributes.hourEnd,
+                        fallbackProgress: context.state.progress,
                         height: 16
                     )
                     .padding(.horizontal, 2)
@@ -33,24 +34,34 @@ struct LifeTimerHourLiveActivity: Widget {
                     HourProgressBar(
                         start: context.attributes.hourStart,
                         end: context.attributes.hourEnd,
+                        fallbackProgress: context.state.progress,
                         height: 14
                     )
                     .padding(.horizontal, 4)
                     .frame(maxWidth: .infinity)
                 }
             } compactLeading: {
-                Circle()
-                    .fill(LinearGradient.lifeHeat)
-                    .frame(width: 8, height: 8)
-            } compactTrailing: {
-                HourProgressBar(
+                HourMiniProgressDot(
                     start: context.attributes.hourStart,
                     end: context.attributes.hourEnd,
-                    height: 7
+                    fallbackProgress: context.state.progress,
+                    size: 12
                 )
-                .frame(width: 42)
+            } compactTrailing: {
+                HourMiniProgressBar(
+                    start: context.attributes.hourStart,
+                    end: context.attributes.hourEnd,
+                    fallbackProgress: context.state.progress,
+                    height: 8
+                )
+                .frame(width: 46)
             } minimal: {
-                HourRemainingDot()
+                HourMiniProgressDot(
+                    start: context.attributes.hourStart,
+                    end: context.attributes.hourEnd,
+                    fallbackProgress: context.state.progress,
+                    size: 18
+                )
             }
             .keylineTint(Color.lifeHeatYellow)
         }
@@ -66,6 +77,7 @@ private struct HourLockScreenView: View {
             HourProgressBar(
                 start: context.attributes.hourStart,
                 end: context.attributes.hourEnd,
+                fallbackProgress: context.state.progress,
                 height: 16
             )
         }
@@ -78,6 +90,7 @@ private struct HourLockScreenView: View {
 private struct HourProgressBar: View {
     let start: Date
     let end: Date
+    let fallbackProgress: Double
     let height: CGFloat
 
     var body: some View {
@@ -85,32 +98,148 @@ private struct HourProgressBar: View {
             Capsule(style: .continuous)
                 .fill(Color.lifeRemaining.opacity(0.18))
 
-            LinearGradient.lifeHeat
-                .mask {
-                    ProgressView(timerInterval: start...end, countsDown: false)
-                        .progressViewStyle(.linear)
-                        .labelsHidden()
-                        .tint(Color.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 4)
-                        .scaleEffect(x: 1, y: max(1, height / 4), anchor: .center)
-                }
-                .frame(maxWidth: .infinity)
-                .frame(height: height)
-                .clipShape(Capsule(style: .continuous))
+            HourGradientFill(progress: progress)
+
+            HourQuarterTicks(height: height)
         }
+        .clipShape(Capsule(style: .continuous))
         .frame(maxWidth: .infinity)
         .frame(height: height)
         .accessibilityLabel("Current hour progress")
     }
+
+    private var progress: Double {
+        max(fallbackProgress, hourProgress(at: Date(), start: start, end: end))
+    }
 }
 
-private struct HourRemainingDot: View {
+private struct HourGradientFill: View {
+    let progress: Double
+
     var body: some View {
-        Circle()
-            .fill(LinearGradient.lifeHeat)
-        .frame(width: 18, height: 18)
+        GeometryReader { geometry in
+            LinearGradient.lifeHeat
+                .frame(width: geometry.size.width)
+                .frame(maxHeight: .infinity)
+                .mask(alignment: .leading) {
+                    Capsule(style: .continuous)
+                        .frame(width: geometry.size.width * progress)
+                }
+        }
     }
+}
+
+private struct HourQuarterTicks: View {
+    let height: CGFloat
+
+    private let fractions = [0.25, 0.5, 0.75]
+
+    var body: some View {
+        GeometryReader { geometry in
+            ForEach(fractions, id: \.self) { fraction in
+                Capsule(style: .continuous)
+                    .fill(Color.lifeInk.opacity(0.5))
+                    .overlay {
+                        Capsule(style: .continuous)
+                            .stroke(Color.lifeRemaining.opacity(0.28), lineWidth: 0.5)
+                    }
+                    .frame(width: 1, height: max(3, height * 0.68))
+                    .position(
+                        x: geometry.size.width * fraction,
+                        y: geometry.size.height / 2
+                    )
+            }
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+private struct HourMiniProgressBar: View {
+    let start: Date
+    let end: Date
+    let fallbackProgress: Double
+    let height: CGFloat
+
+    var body: some View {
+        ZStack {
+            Capsule(style: .continuous)
+                .fill(Color.lifeRemaining.opacity(0.16))
+
+            HourGradientFill(progress: progress)
+
+            HourMiniTicks(height: height)
+        }
+        .clipShape(Capsule(style: .continuous))
+        .frame(maxWidth: .infinity)
+        .frame(height: height)
+        .accessibilityLabel("Current hour progress")
+    }
+
+    private var progress: Double {
+        max(fallbackProgress, hourProgress(at: Date(), start: start, end: end))
+    }
+}
+
+private struct HourMiniTicks: View {
+    let height: CGFloat
+
+    private let fractions = [0.25, 0.5, 0.75]
+
+    var body: some View {
+        GeometryReader { geometry in
+            ForEach(fractions, id: \.self) { fraction in
+                Capsule(style: .continuous)
+                    .fill(Color.lifeInk.opacity(0.32))
+                    .frame(width: 0.75, height: max(2, height * 0.5))
+                    .position(
+                        x: geometry.size.width * fraction,
+                        y: geometry.size.height / 2
+                    )
+            }
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+private struct HourMiniProgressDot: View {
+    let start: Date
+    let end: Date
+    let fallbackProgress: Double
+    let size: CGFloat
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color.lifeRemaining.opacity(0.22), lineWidth: max(1.5, size * 0.14))
+
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(
+                    progressColor(for: progress),
+                    style: StrokeStyle(
+                        lineWidth: max(1.5, size * 0.14),
+                        lineCap: .round
+                    )
+                )
+                .rotationEffect(.degrees(-90))
+
+            Circle()
+                .fill(progressColor(for: progress))
+                .frame(width: max(3, size * 0.34), height: max(3, size * 0.34))
+        }
+        .frame(width: size, height: size)
+        .accessibilityLabel("Current hour progress")
+    }
+
+    private var progress: Double {
+        max(fallbackProgress, hourProgress(at: Date(), start: start, end: end))
+    }
+}
+
+private func hourProgress(at date: Date, start: Date, end: Date) -> Double {
+    let duration = max(1, end.timeIntervalSince(start))
+    let elapsed = date.timeIntervalSince(start)
+    return min(1, max(0, elapsed / duration))
 }
 
 private extension Color {
@@ -144,4 +273,55 @@ private extension LinearGradient {
         startPoint: .leading,
         endPoint: .trailing
     )
+}
+
+private struct HeatColorStop {
+    let progress: Double
+    let red: Double
+    let green: Double
+    let blue: Double
+}
+
+private let heatColorStops = [
+    HeatColorStop(progress: 0.00, red: 25, green: 25, blue: 112),
+    HeatColorStop(progress: 0.12, red: 0, green: 116, blue: 128),
+    HeatColorStop(progress: 0.25, red: 0, green: 190, blue: 96),
+    HeatColorStop(progress: 0.40, red: 172, green: 230, blue: 48),
+    HeatColorStop(progress: 0.55, red: 255, green: 224, blue: 48),
+    HeatColorStop(progress: 0.68, red: 255, green: 186, blue: 32),
+    HeatColorStop(progress: 0.78, red: 255, green: 149, blue: 0),
+    HeatColorStop(progress: 0.90, red: 255, green: 82, blue: 32),
+    HeatColorStop(progress: 1.00, red: 255, green: 36, blue: 36)
+]
+
+private func progressColor(for progress: Double) -> Color {
+    let clampedProgress = min(1, max(0, progress))
+    guard var previousStop = heatColorStops.first else {
+        return .lifeHeatYellow
+    }
+
+    for nextStop in heatColorStops.dropFirst() {
+        guard clampedProgress > nextStop.progress else {
+            let span = nextStop.progress - previousStop.progress
+            let amount = span > 0 ? (clampedProgress - previousStop.progress) / span : 0
+
+            return Color(
+                red: interpolate(from: previousStop.red, to: nextStop.red, amount: amount) / 255,
+                green: interpolate(from: previousStop.green, to: nextStop.green, amount: amount) / 255,
+                blue: interpolate(from: previousStop.blue, to: nextStop.blue, amount: amount) / 255
+            )
+        }
+
+        previousStop = nextStop
+    }
+
+    return Color(
+        red: previousStop.red / 255,
+        green: previousStop.green / 255,
+        blue: previousStop.blue / 255
+    )
+}
+
+private func interpolate(from start: Double, to end: Double, amount: Double) -> Double {
+    start + (end - start) * amount
 }

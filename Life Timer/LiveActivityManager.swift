@@ -21,6 +21,7 @@ enum LifeTimerLiveActivityManager {
         #if canImport(ActivityKit) && os(iOS)
         if #available(iOS 16.2, *) {
             await restartExpiredHourTimerIfNeeded(now: now)
+            await updateCurrentHourTimers(now: now)
 
             return LifeTimerLiveActivityStatus(
                 isRunning: !Activity<LifeTimerHourAttributes>.activities.isEmpty,
@@ -86,6 +87,23 @@ enum LifeTimerLiveActivityManager {
 
         await endExistingHourTimers()
         requestHourTimer(now: now)
+    }
+
+    @available(iOS 16.2, *)
+    private static func updateCurrentHourTimers(now: Date) async {
+        for activity in Activity<LifeTimerHourAttributes>.activities {
+            guard activity.attributes.hourStart <= now && now < activity.attributes.hourEnd else { continue }
+
+            let content = ActivityContent(
+                state: LifeTimerHourAttributes.ContentState(
+                    generatedAt: now,
+                    progress: hourProgress(at: now, start: activity.attributes.hourStart, end: activity.attributes.hourEnd)
+                ),
+                staleDate: activity.attributes.hourEnd,
+                relevanceScore: 1
+            )
+            await activity.update(content)
+        }
     }
 
     @available(iOS 16.2, *)
