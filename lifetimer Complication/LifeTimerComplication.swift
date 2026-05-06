@@ -79,9 +79,8 @@ struct LifeTimerComplicationView: View {
         switch family {
         case .accessoryCircular:
             ZStack {
-                ProgressView(value: entry.progress)
+                complicationProgressView
                     .progressViewStyle(.circular)
-                    .tint(progressColor(for: entry.progress))
 
                 Text(entry.percentText)
                     .font(.system(size: 10, weight: .heavy, design: .rounded))
@@ -91,9 +90,8 @@ struct LifeTimerComplicationView: View {
             }
 
         case .accessoryCorner:
-            ProgressView(value: entry.progress)
+            complicationProgressView
                 .progressViewStyle(.circular)
-                .tint(progressColor(for: entry.progress))
                 .widgetLabel {
                     Text(entry.percentText)
                         .monospacedDigit()
@@ -109,8 +107,7 @@ struct LifeTimerComplicationView: View {
                     .monospacedDigit()
                     .lineLimit(1)
                 HStack(spacing: 4) {
-                    ProgressView(value: entry.progress)
-                        .tint(progressColor(for: entry.progress))
+                    complicationProgressView
                     Text(entry.periodEnd, style: .timer)
                         .font(.system(.caption, design: .monospaced).weight(.bold))
                         .foregroundStyle(.secondary)
@@ -127,6 +124,17 @@ struct LifeTimerComplicationView: View {
                 Text(entry.percentText)
                     .monospacedDigit()
             }
+        }
+    }
+
+    @ViewBuilder
+    private var complicationProgressView: some View {
+        if entry.period.usesDateRelativeProgress {
+            ProgressView(timerInterval: entry.periodStart...entry.periodEnd, countsDown: false)
+                .tint(progressColor(for: entry.progress))
+        } else {
+            ProgressView(value: entry.progress)
+                .tint(progressColor(for: entry.progress))
         }
     }
 }
@@ -244,7 +252,7 @@ enum LifePeriod {
     func timelineHorizon(after date: Date) -> Date {
         switch self {
         case .hour:
-            let coverageEnd = date.addingTimeInterval(24 * 60 * 60)
+            let coverageEnd = date.addingTimeInterval(4 * 60 * 60)
             return Self.calendar.dateInterval(of: .hour, for: coverageEnd)?.end ?? coverageEnd
         case .day:
             return date.addingTimeInterval(15 * 60)
@@ -254,9 +262,9 @@ enum LifePeriod {
     private var timelineCadence: TimeInterval {
         switch self {
         case .hour:
-            // Watch faces may throttle sub-minute WidgetKit timelines, which can
-            // leave the first hour entry visible long after it should advance.
-            return 60
+            // WidgetKit may still coalesce sub-minute entries, but the hour face
+            // should ask for livelier updates than the day face.
+            return 15
         case .day:
             return 60
         }
@@ -277,6 +285,15 @@ enum LifePeriod {
             return "hour"
         case .day:
             return "day"
+        }
+    }
+
+    fileprivate var usesDateRelativeProgress: Bool {
+        switch self {
+        case .hour:
+            return true
+        case .day:
+            return false
         }
     }
 
