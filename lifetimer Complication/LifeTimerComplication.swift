@@ -258,9 +258,11 @@ enum LifePeriod {
     private var timelineCadence: TimeInterval {
         switch self {
         case .hour:
-            return 10
+            // Watch faces may throttle sub-minute WidgetKit timelines, which can
+            // leave the first hour entry visible long after it should advance.
+            return 60
         case .day:
-            return 10
+            return 60
         }
     }
 
