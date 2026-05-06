@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct Life_TimerApp: App {
+struct LifeTimerApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()

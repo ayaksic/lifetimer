@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		498E8EE92FAAEE0500CF5723 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 498E8EE82FAAEE0500CF5723 /* WidgetKit.framework */; };
+		498E8EEB2FAAEE0500CF5723 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 498E8EEA2FAAEE0500CF5723 /* SwiftUI.framework */; };
+		498E8EFA2FAAEE0600CF5723 /* Life Timer WidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 498E8EE62FAAEE0500CF5723 /* Life Timer WidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		498E8EBE2FAAECED00CF5723 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,13 +27,50 @@
 			remoteGlobalIDString = 498E8EAF2FAAECEC00CF5723;
 			remoteInfo = "Life Timer";
 		};
+		498E8EF82FAAEE0600CF5723 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 498E8EA82FAAECEC00CF5723 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 498E8EE52FAAEE0500CF5723;
+			remoteInfo = "Life Timer WidgetsExtension";
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		498E8EFF2FAAEE0600CF5723 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				498E8EFA2FAAEE0600CF5723 /* Life Timer WidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		498E8EB02FAAECEC00CF5723 /* Life Timer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Life Timer.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		498E8EBD2FAAECED00CF5723 /* Life TimerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Life TimerTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		498E8EC72FAAECED00CF5723 /* Life TimerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Life TimerUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		498E8EE62FAAEE0500CF5723 /* Life Timer WidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Life Timer WidgetsExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		498E8EE82FAAEE0500CF5723 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		498E8EEA2FAAEE0500CF5723 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		498E8EFB2FAAEE0600CF5723 /* Exceptions for "Life Timer Widgets" folder in "Life Timer WidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+				Life_Timer_Widgets.swift,
+				Life_Timer_WidgetsControl.swift,
+				Life_Timer_WidgetsLiveActivity.swift,
+			);
+			target = 498E8EE52FAAEE0500CF5723 /* Life Timer WidgetsExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		498E8EB22FAAECEC00CF5723 /* Life Timer */ = {
@@ -43,6 +86,14 @@
 		498E8ECA2FAAECED00CF5723 /* Life TimerUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "Life TimerUITests";
+			sourceTree = "<group>";
+		};
+		498E8EEC2FAAEE0500CF5723 /* Life Timer Widgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				498E8EFB2FAAEE0600CF5723 /* Exceptions for "Life Timer Widgets" folder in "Life Timer WidgetsExtension" target */,
+			);
+			path = "Life Timer Widgets";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -69,6 +120,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		498E8EE32FAAEE0500CF5723 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				498E8EEB2FAAEE0500CF5723 /* SwiftUI.framework in Frameworks */,
+				498E8EE92FAAEE0500CF5723 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -78,6 +138,8 @@
 				498E8EB22FAAECEC00CF5723 /* Life Timer */,
 				498E8EC02FAAECED00CF5723 /* Life TimerTests */,
 				498E8ECA2FAAECED00CF5723 /* Life TimerUITests */,
+				498E8EEC2FAAEE0500CF5723 /* Life Timer Widgets */,
+				498E8EE72FAAEE0500CF5723 /* Frameworks */,
 				498E8EB12FAAECEC00CF5723 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,8 +150,18 @@
 				498E8EB02FAAECEC00CF5723 /* Life Timer.app */,
 				498E8EBD2FAAECED00CF5723 /* Life TimerTests.xctest */,
 				498E8EC72FAAECED00CF5723 /* Life TimerUITests.xctest */,
+				498E8EE62FAAEE0500CF5723 /* Life Timer WidgetsExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		498E8EE72FAAEE0500CF5723 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				498E8EE82FAAEE0500CF5723 /* WidgetKit.framework */,
+				498E8EEA2FAAEE0500CF5723 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -102,10 +174,12 @@
 				498E8EAC2FAAECEC00CF5723 /* Sources */,
 				498E8EAD2FAAECEC00CF5723 /* Frameworks */,
 				498E8EAE2FAAECEC00CF5723 /* Resources */,
+				498E8EFF2FAAEE0600CF5723 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				498E8EF92FAAEE0600CF5723 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				498E8EB22FAAECEC00CF5723 /* Life Timer */,
@@ -163,6 +237,28 @@
 			productReference = 498E8EC72FAAECED00CF5723 /* Life TimerUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		498E8EE52FAAEE0500CF5723 /* Life Timer WidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 498E8EFC2FAAEE0600CF5723 /* Build configuration list for PBXNativeTarget "Life Timer WidgetsExtension" */;
+			buildPhases = (
+				498E8EE22FAAEE0500CF5723 /* Sources */,
+				498E8EE32FAAEE0500CF5723 /* Frameworks */,
+				498E8EE42FAAEE0500CF5723 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				498E8EEC2FAAEE0500CF5723 /* Life Timer Widgets */,
+			);
+			name = "Life Timer WidgetsExtension";
+			packageProductDependencies = (
+			);
+			productName = "Life Timer WidgetsExtension";
+			productReference = 498E8EE62FAAEE0500CF5723 /* Life Timer WidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -184,6 +280,9 @@
 						CreatedOnToolsVersion = 26.4.1;
 						TestTargetID = 498E8EAF2FAAECEC00CF5723;
 					};
+					498E8EE52FAAEE0500CF5723 = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
 				};
 			};
 			buildConfigurationList = 498E8EAB2FAAECEC00CF5723 /* Build configuration list for PBXProject "Life Timer" */;
@@ -203,6 +302,7 @@
 				498E8EAF2FAAECEC00CF5723 /* Life Timer */,
 				498E8EBC2FAAECED00CF5723 /* Life TimerTests */,
 				498E8EC62FAAECED00CF5723 /* Life TimerUITests */,
+				498E8EE52FAAEE0500CF5723 /* Life Timer WidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -223,6 +323,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		498E8EC52FAAECED00CF5723 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		498E8EE42FAAEE0500CF5723 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -253,6 +360,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		498E8EE22FAAEE0500CF5723 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -265,6 +379,11 @@
 			isa = PBXTargetDependency;
 			target = 498E8EAF2FAAECEC00CF5723 /* Life Timer */;
 			targetProxy = 498E8EC82FAAECED00CF5723 /* PBXContainerItemProxy */;
+		};
+		498E8EF92FAAEE0600CF5723 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 498E8EE52FAAEE0500CF5723 /* Life Timer WidgetsExtension */;
+			targetProxy = 498E8EF82FAAEE0600CF5723 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -400,6 +519,8 @@
 				DEVELOPMENT_TEAM = J5UXQQS99D;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -432,6 +553,8 @@
 				DEVELOPMENT_TEAM = J5UXQQS99D;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -538,6 +661,66 @@
 			};
 			name = Release;
 		};
+		498E8EFD2FAAEE0600CF5723 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J5UXQQS99D;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Life Timer Widgets/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Life Timer Widgets";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "yaksic.Life-Timer.Life-Timer-Widgets";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		498E8EFE2FAAEE0600CF5723 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J5UXQQS99D;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Life Timer Widgets/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Life Timer Widgets";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "yaksic.Life-Timer.Life-Timer-Widgets";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -573,6 +756,15 @@
 			buildConfigurations = (
 				498E8ED82FAAECED00CF5723 /* Debug */,
 				498E8ED92FAAECED00CF5723 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		498E8EFC2FAAEE0600CF5723 /* Build configuration list for PBXNativeTarget "Life Timer WidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				498E8EFD2FAAEE0600CF5723 /* Debug */,
+				498E8EFE2FAAEE0600CF5723 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
