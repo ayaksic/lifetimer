@@ -226,7 +226,9 @@ enum LifePeriod: Int, CaseIterable, Identifiable {
 
     private func monthWeek(for date: Date) -> Int {
         let day = Self.calendar.component(.day, from: date)
-        return ((day - 1) / 7) + 1
+        let monthStart = Self.calendar.dateInterval(of: .month, for: date)!.start
+        let firstWeekdayOffset = Self.calendar.component(.weekday, from: monthStart) - 1
+        return ((firstWeekdayOffset + day - 1) / 7) + 1
     }
 
     private func gridLabel(for index: Int, at date: Date, lifetimeStart: Date) -> String {
