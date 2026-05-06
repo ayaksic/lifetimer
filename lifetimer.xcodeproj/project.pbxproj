@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		49B36CA12FAAB39C00292CF7 /* lifetimer Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 49B36CA02FAAB39C00292CF7 /* lifetimer Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		49B36CD02FAAC00000292CF7 /* lifetimer Complication.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 49B36CD32FAAC00000292CF7 /* lifetimer Complication.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		49B36CDF2FAAC00000292CF7 /* LifeTimerComplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49B36CDD2FAAC00000292CF7 /* LifeTimerComplication.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -32,6 +34,13 @@
 			remoteGlobalIDString = 49B36C9F2FAAB39C00292CF7;
 			remoteInfo = "lifetimer Watch App";
 		};
+		49B36CD12FAAC00000292CF7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 49B36C942FAAB39C00292CF7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 49B36CD62FAAC00000292CF7;
+			remoteInfo = "lifetimer Complication";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -46,6 +55,17 @@
 			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		49B36CD22FAAC00000292CF7 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				49B36CD02FAAC00000292CF7 /* lifetimer Complication.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +73,9 @@
 		49B36CA02FAAB39C00292CF7 /* lifetimer Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "lifetimer Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		49B36CAF2FAAB39D00292CF7 /* lifetimer Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "lifetimer Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		49B36CB92FAAB39D00292CF7 /* lifetimer Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "lifetimer Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		49B36CD32FAAC00000292CF7 /* lifetimer Complication.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "lifetimer Complication.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		49B36CDD2FAAC00000292CF7 /* LifeTimerComplication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeTimerComplication.swift; sourceTree = "<group>"; };
+		49B36CDE2FAAC00000292CF7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -95,6 +118,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		49B36CD52FAAC00000292CF7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -102,6 +132,7 @@
 			isa = PBXGroup;
 			children = (
 				49B36CA42FAAB39C00292CF7 /* lifetimer Watch App */,
+				49B36CD42FAAC00000292CF7 /* lifetimer Complication */,
 				49B36CB22FAAB39D00292CF7 /* lifetimer Watch AppTests */,
 				49B36CBC2FAAB39D00292CF7 /* lifetimer Watch AppUITests */,
 				49B36C9B2FAAB39C00292CF7 /* Products */,
@@ -113,10 +144,20 @@
 			children = (
 				49B36C9A2FAAB39C00292CF7 /* lifetimer.app */,
 				49B36CA02FAAB39C00292CF7 /* lifetimer Watch App.app */,
+				49B36CD32FAAC00000292CF7 /* lifetimer Complication.appex */,
 				49B36CAF2FAAB39D00292CF7 /* lifetimer Watch AppTests.xctest */,
 				49B36CB92FAAB39D00292CF7 /* lifetimer Watch AppUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		49B36CD42FAAC00000292CF7 /* lifetimer Complication */ = {
+			isa = PBXGroup;
+			children = (
+				49B36CDD2FAAC00000292CF7 /* LifeTimerComplication.swift */,
+				49B36CDE2FAAC00000292CF7 /* Info.plist */,
+			);
+			path = "lifetimer Complication";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -148,10 +189,12 @@
 				49B36C9C2FAAB39C00292CF7 /* Sources */,
 				49B36C9D2FAAB39C00292CF7 /* Frameworks */,
 				49B36C9E2FAAB39C00292CF7 /* Resources */,
+				49B36CD22FAAC00000292CF7 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				49B36CD92FAAC00000292CF7 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				49B36CA42FAAB39C00292CF7 /* lifetimer Watch App */,
@@ -209,6 +252,25 @@
 			productReference = 49B36CB92FAAB39D00292CF7 /* lifetimer Watch AppUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		49B36CD62FAAC00000292CF7 /* lifetimer Complication */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 49B36CDC2FAAC00000292CF7 /* Build configuration list for PBXNativeTarget "lifetimer Complication" */;
+			buildPhases = (
+				49B36CD82FAAC00000292CF7 /* Sources */,
+				49B36CD52FAAC00000292CF7 /* Frameworks */,
+				49B36CD72FAAC00000292CF7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "lifetimer Complication";
+			packageProductDependencies = (
+			);
+			productName = "lifetimer Complication";
+			productReference = 49B36CD32FAAC00000292CF7 /* lifetimer Complication.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -233,6 +295,9 @@
 						CreatedOnToolsVersion = 26.4.1;
 						TestTargetID = 49B36C9F2FAAB39C00292CF7;
 					};
+					49B36CD62FAAC00000292CF7 = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
 				};
 			};
 			buildConfigurationList = 49B36C972FAAB39C00292CF7 /* Build configuration list for PBXProject "lifetimer" */;
@@ -251,6 +316,7 @@
 			targets = (
 				49B36C992FAAB39C00292CF7 /* lifetimer */,
 				49B36C9F2FAAB39C00292CF7 /* lifetimer Watch App */,
+				49B36CD62FAAC00000292CF7 /* lifetimer Complication */,
 				49B36CAE2FAAB39D00292CF7 /* lifetimer Watch AppTests */,
 				49B36CB82FAAB39D00292CF7 /* lifetimer Watch AppUITests */,
 			);
@@ -286,6 +352,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		49B36CD72FAAC00000292CF7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -310,6 +383,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		49B36CD82FAAC00000292CF7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				49B36CDF2FAAC00000292CF7 /* LifeTimerComplication.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -327,6 +408,11 @@
 			isa = PBXTargetDependency;
 			target = 49B36C9F2FAAB39C00292CF7 /* lifetimer Watch App */;
 			targetProxy = 49B36CBA2FAAB39D00292CF7 /* PBXContainerItemProxy */;
+		};
+		49B36CD92FAAC00000292CF7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 49B36CD62FAAC00000292CF7 /* lifetimer Complication */;
+			targetProxy = 49B36CD12FAAC00000292CF7 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -452,11 +538,21 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = lifetimer;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				INFOPLIST_KEY_WKWatchOnly = YES;
+					DEVELOPMENT_TEAM = J5UXQQS99D;
+					ENABLE_PREVIEWS = YES;
+					GENERATE_INFOPLIST_FILE = YES;
+					INFOPLIST_KEY_CFBundleDisplayName = "Life Timer";
+					INFOPLIST_KEY_CFBundleURLTypes = (
+						{
+							CFBundleTypeRole = Viewer;
+							CFBundleURLName = yaksic.lifetimer.watchkitapp;
+							CFBundleURLSchemes = (
+								lifetimer,
+							);
+						},
+					);
+					INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+					INFOPLIST_KEY_WKWatchOnly = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -484,9 +580,19 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J5UXQQS99D;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = lifetimer;
+				INFOPLIST_KEY_CFBundleDisplayName = "Life Timer";
+				INFOPLIST_KEY_CFBundleURLTypes = (
+					{
+						CFBundleTypeRole = Viewer;
+						CFBundleURLName = yaksic.lifetimer.watchkitapp;
+						CFBundleURLSchemes = (
+							lifetimer,
+						);
+					},
+				);
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKWatchOnly = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -515,7 +621,8 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				INFOPLIST_KEY_CFBundleDisplayName = lifetimer;
+				DEVELOPMENT_TEAM = J5UXQQS99D;
+				INFOPLIST_KEY_CFBundleDisplayName = "Life Timer";
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = yaksic.lifetimer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -531,7 +638,8 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				INFOPLIST_KEY_CFBundleDisplayName = lifetimer;
+				DEVELOPMENT_TEAM = J5UXQQS99D;
+				INFOPLIST_KEY_CFBundleDisplayName = "Life Timer";
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = yaksic.lifetimer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -631,6 +739,71 @@
 			};
 			name = Release;
 		};
+		49B36CDA2FAAC00000292CF7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J5UXQQS99D;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "lifetimer Complication/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Life Timer";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = yaksic.lifetimer.watchkitapp.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.4;
+			};
+			name = Debug;
+		};
+		49B36CDB2FAAC00000292CF7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J5UXQQS99D;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "lifetimer Complication/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Life Timer";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = yaksic.lifetimer.watchkitapp.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 26.4;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -675,6 +848,15 @@
 			buildConfigurations = (
 				49B36CCE2FAAB39D00292CF7 /* Debug */,
 				49B36CCF2FAAB39D00292CF7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		49B36CDC2FAAC00000292CF7 /* Build configuration list for PBXNativeTarget "lifetimer Complication" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				49B36CDA2FAAC00000292CF7 /* Debug */,
+				49B36CDB2FAAC00000292CF7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

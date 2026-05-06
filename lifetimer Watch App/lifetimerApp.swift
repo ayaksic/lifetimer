@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct lifetimer_Watch_AppApp: App {
+struct LifeTimerWatchApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
