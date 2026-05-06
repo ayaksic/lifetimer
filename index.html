@@ -1,18 +1,25 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-    <meta name="theme-color" content="#fbf8f3">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Life Timer">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Life Timer">
-    <link rel="manifest" href="site.webmanifest">
-    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-180.png">
-    <link rel="icon" sizes="192x192" href="icon-192.png">
-    <link rel="icon" sizes="512x512" href="icon-512.png">
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"
+    />
+    <meta name="theme-color" content="#fbf8f3" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Life Timer" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Life Timer" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="apple-touch-icon-180.png"
+    />
+    <link rel="icon" sizes="192x192" href="icon-192.png" />
+    <link rel="icon" sizes="512x512" href="icon-512.png" />
     <title>Life Timer</title>
     <style>
       :root {
@@ -36,9 +43,12 @@
         overflow: hidden;
         background: var(--remaining);
         color: var(--ink);
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", monospace;
         touch-action: none;
         overscroll-behavior: none;
+        -webkit-touch-callout: none;
         -webkit-user-select: none;
         user-select: none;
       }
@@ -56,7 +66,8 @@
         inset: 0;
         display: grid;
         place-items: center;
-        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        padding: env(safe-area-inset-top) env(safe-area-inset-right)
+          env(safe-area-inset-bottom) env(safe-area-inset-left);
         pointer-events: none;
       }
 
@@ -73,9 +84,15 @@
 
       .period {
         display: block;
-        margin-bottom: 0.65rem;
-        color: var(--muted);
-        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin-bottom: 0.16rem;
+        color: var(--ink);
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
         font-size: clamp(0.78rem, 2.7vw, 1rem);
         font-weight: 700;
         letter-spacing: 0;
@@ -90,6 +107,151 @@
         letter-spacing: 0;
         font-variant-numeric: tabular-nums;
       }
+
+      .unit-position {
+        display: block;
+        margin-top: 0.16rem;
+        color: var(--ink);
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        font-size: clamp(0.78rem, 2.7vw, 1rem);
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .unit-position[hidden] {
+        display: none;
+      }
+
+      .lifetime-editor {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+        background: rgba(22, 19, 18, 0.24);
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+
+      .lifetime-editor[hidden] {
+        display: none;
+      }
+
+      .lifetime-panel {
+        width: min(14.5rem, calc(100vw - 3rem));
+        min-width: 0;
+        overflow: hidden;
+        padding: 1rem;
+        border: 1px solid rgba(22, 19, 18, 0.16);
+        border-radius: 8px;
+        background: var(--remaining);
+        box-shadow: 0 1rem 3rem rgba(22, 19, 18, 0.18);
+      }
+
+      .lifetime-panel label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .lifetime-fields {
+        display: grid;
+        gap: 0.5rem;
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      .lifetime-fields input {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        appearance: none;
+        -webkit-appearance: none;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        height: 2.75rem;
+        border: 1px solid rgba(22, 19, 18, 0.2);
+        border-radius: 6px;
+        padding: 0 0.7rem;
+        background: #fffdf9;
+        color: var(--ink);
+        line-height: normal;
+        text-align: center;
+        font:
+          700 1rem ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          Monaco,
+          Consolas,
+          "Liberation Mono",
+          monospace;
+      }
+
+      .lifetime-fields input::-webkit-date-and-time-value {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        text-align: center;
+      }
+
+      .lifetime-fields input::-webkit-datetime-edit {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+        height: 100%;
+        padding: 0;
+      }
+
+      .lifetime-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+      }
+
+      .lifetime-actions button {
+        min-height: 2.5rem;
+        border: 1px solid rgba(22, 19, 18, 0.18);
+        border-radius: 6px;
+        background: #fffdf9;
+        color: var(--ink);
+        font:
+          800 0.85rem ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+
+      .lifetime-actions button[type="submit"] {
+        border-color: var(--ink);
+        background: var(--ink);
+        color: var(--remaining);
+      }
     </style>
   </head>
   <body>
@@ -99,16 +261,57 @@
       <div class="center">
         <span class="period" id="period">Hour</span>
         <span class="percent" id="percent">0.0000%</span>
+        <span class="unit-position" id="unit-position" hidden>1/1</span>
       </div>
     </main>
+    <form
+      class="lifetime-editor"
+      id="lifetime-editor"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="lifetime-editor-title"
+      hidden
+    >
+      <div class="lifetime-panel">
+        <label id="lifetime-editor-title" for="lifetime-start-date">
+          Life starts
+        </label>
+        <div class="lifetime-fields">
+          <input
+            id="lifetime-start-date"
+            name="lifetime-start-date"
+            type="date"
+            aria-label="Life start date"
+            required
+          />
+          <input
+            id="lifetime-start-time"
+            name="lifetime-start-time"
+            type="time"
+            step="60"
+            aria-label="Life start time"
+            required
+          />
+        </div>
+        <div class="lifetime-actions">
+          <button type="button" data-action="cancel">Cancel</button>
+          <button type="button" data-action="reset">Reset</button>
+          <button type="submit">Set</button>
+        </div>
+      </div>
+    </form>
 
     <script>
       const canvas = document.getElementById("progress");
       const context = canvas.getContext("2d", { alpha: false });
       const periodElement = document.getElementById("period");
       const percentElement = document.getElementById("percent");
+      const unitPositionElement = document.getElementById("unit-position");
       const centerElement = document.querySelector(".center");
       const hopeAudio = document.getElementById("hope-audio");
+      const lifetimeEditor = document.getElementById("lifetime-editor");
+      const lifetimeDateInput = document.getElementById("lifetime-start-date");
+      const lifetimeTimeInput = document.getElementById("lifetime-start-time");
       const colors = {
         elapsed: "#b66a5f",
         remaining: "#fbf8f3",
@@ -117,6 +320,16 @@
         grid: "rgba(22, 19, 18, 0.18)",
         gridLabel: "rgba(22, 19, 18, 0.42)",
       };
+      const defaultLifetimeStart = new Date(1985, 3, 17, 3, 41, 0, 0);
+      const lifetimeStartStorageKey = "lifeTimerLifetimeStart";
+      const unitPositionStorageKey = "lifeTimerUnitPositionEnabled";
+      const lifeUnitDurations = {
+        week: 7 * 24 * 60 * 60 * 1000,
+        day: 24 * 60 * 60 * 1000,
+        hour: 60 * 60 * 1000,
+      };
+      let lifetimeStart = readLifetimeStart();
+      let unitPositionEnabled = readUnitPositionEnabled();
 
       const pageDefinitions = [
         {
@@ -125,8 +338,18 @@
           decimalPlaces: 4,
           range(now) {
             return {
-              start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours()),
-              end: new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours() + 1),
+              start: new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate(),
+                now.getHours(),
+              ),
+              end: new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate(),
+                now.getHours() + 1,
+              ),
             };
           },
         },
@@ -137,7 +360,11 @@
           range(now) {
             return {
               start: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
-              end: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1),
+              end: new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate() + 1,
+              ),
             };
           },
         },
@@ -146,10 +373,18 @@
           period: "week",
           decimalPlaces: 6,
           range(now) {
-            const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+            const start = new Date(
+              now.getFullYear(),
+              now.getMonth(),
+              now.getDate() - now.getDay(),
+            );
             return {
               start,
-              end: new Date(start.getFullYear(), start.getMonth(), start.getDate() + 7),
+              end: new Date(
+                start.getFullYear(),
+                start.getMonth(),
+                start.getDate() + 7,
+              ),
             };
           },
         },
@@ -180,10 +415,7 @@
           period: "lifetime",
           decimalPlaces: 9,
           range() {
-            return {
-              start: new Date(1985, 3, 17, 3, 41, 0, 0),
-              end: new Date(2065, 3, 17, 3, 41, 0, 0),
-            };
+            return getLifetimeRange();
           },
         },
       ];
@@ -197,7 +429,10 @@
       };
 
       const periods = [
-        ...pageDefinitions.map((definition) => ({ ...definition, view: "flow" })),
+        ...pageDefinitions.map((definition) => ({
+          ...definition,
+          view: "flow",
+        })),
         ...pageDefinitions.map((definition) => ({
           ...definition,
           view: "grid",
@@ -220,6 +455,8 @@
       let touchStartX = 0;
       let touchStartY = 0;
       let touchStartTime = 0;
+      let longPressTimer = 0;
+      let longPressTriggered = false;
 
       function resizeCanvas() {
         width = Math.max(1, Math.round(window.innerWidth));
@@ -233,6 +470,221 @@
 
       function clamp(value, min, max) {
         return Math.min(max, Math.max(min, value));
+      }
+
+      function cloneDate(date) {
+        return new Date(date.getTime());
+      }
+
+      function addYears(date, years) {
+        return new Date(
+          date.getFullYear() + years,
+          date.getMonth(),
+          date.getDate(),
+          date.getHours(),
+          date.getMinutes(),
+          date.getSeconds(),
+          date.getMilliseconds(),
+        );
+      }
+
+      function addMonths(date, months) {
+        return new Date(
+          date.getFullYear(),
+          date.getMonth() + months,
+          date.getDate(),
+          date.getHours(),
+          date.getMinutes(),
+          date.getSeconds(),
+          date.getMilliseconds(),
+        );
+      }
+
+      function getLifetimeRange() {
+        return {
+          start: cloneDate(lifetimeStart),
+          end: addYears(lifetimeStart, 80),
+        };
+      }
+
+      function readLifetimeStart() {
+        try {
+          const storedValue = window.localStorage.getItem(
+            lifetimeStartStorageKey,
+          );
+          const storedDate = parseDateTimeLocal(storedValue);
+          if (storedDate) return storedDate;
+        } catch (error) {
+          return cloneDate(defaultLifetimeStart);
+        }
+
+        return cloneDate(defaultLifetimeStart);
+      }
+
+      function readUnitPositionEnabled() {
+        try {
+          return (
+            window.localStorage.getItem(unitPositionStorageKey) === "true"
+          );
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function setLifetimeStart(date) {
+        lifetimeStart = cloneDate(date);
+
+        try {
+          window.localStorage.setItem(
+            lifetimeStartStorageKey,
+            formatDateTimeLocal(lifetimeStart),
+          );
+        } catch (error) {}
+      }
+
+      function resetLifetimeStart() {
+        lifetimeStart = cloneDate(defaultLifetimeStart);
+
+        try {
+          window.localStorage.removeItem(lifetimeStartStorageKey);
+        } catch (error) {}
+      }
+
+      function formatDateTimeLocal(date) {
+        return `${formatDateLocal(date)}T${formatTimeLocal(date)}`;
+      }
+
+      function formatDateLocal(date) {
+        const year = String(date.getFullYear()).padStart(4, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+      }
+
+      function formatTimeLocal(date) {
+        const hour = String(date.getHours()).padStart(2, "0");
+        const minute = String(date.getMinutes()).padStart(2, "0");
+
+        return `${hour}:${minute}`;
+      }
+
+      function parseDateTimeLocal(value) {
+        if (typeof value !== "string") return null;
+
+        const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+        if (!match) return null;
+
+        const [, rawYear, rawMonth, rawDay, rawHour, rawMinute] = match;
+        const year = Number(rawYear);
+        const month = Number(rawMonth) - 1;
+        const day = Number(rawDay);
+        const hour = Number(rawHour);
+        const minute = Number(rawMinute);
+        const date = new Date(year, month, day, hour, minute, 0, 0);
+
+        if (
+          date.getFullYear() !== year ||
+          date.getMonth() !== month ||
+          date.getDate() !== day ||
+          date.getHours() !== hour ||
+          date.getMinutes() !== minute
+        ) {
+          return null;
+        }
+
+        return date;
+      }
+
+      function setUnitPositionEnabled(isEnabled) {
+        unitPositionEnabled = isEnabled;
+
+        try {
+          window.localStorage.setItem(
+            unitPositionStorageKey,
+            isEnabled ? "true" : "false",
+          );
+        } catch (error) {}
+      }
+
+      function toggleUnitPosition() {
+        setUnitPositionEnabled(!unitPositionEnabled);
+      }
+
+      function getUnitPositionLabel(page, now) {
+        if (page.period === "lifetime") return "1/1";
+
+        if (page.period === "year") {
+          const total = 80;
+          return `${getCurrentCalendarYearNumber(now, total)}/${total}`;
+        }
+
+        if (page.period === "month") {
+          const total = 80 * 12;
+          return `${getCurrentCalendarMonthNumber(now, total)}/${total}`;
+        }
+
+        if (page.period === "week") {
+          return getCurrentDurationUnitLabel(now, lifeUnitDurations.week);
+        }
+
+        if (page.period === "day") {
+          return getCurrentDurationUnitLabel(now, lifeUnitDurations.day);
+        }
+
+        return getCurrentDurationUnitLabel(now, lifeUnitDurations.hour);
+      }
+
+      function getCurrentCalendarYearNumber(now, total) {
+        const end = addYears(lifetimeStart, total);
+        if (now >= end) return total;
+
+        let elapsedYears = now.getFullYear() - lifetimeStart.getFullYear();
+        if (now < addYears(lifetimeStart, elapsedYears)) elapsedYears -= 1;
+
+        return clamp(elapsedYears + 1, 1, total);
+      }
+
+      function getCurrentCalendarMonthNumber(now, total) {
+        const end = addYears(lifetimeStart, 80);
+        if (now >= end) return total;
+
+        let elapsedMonths =
+          (now.getFullYear() - lifetimeStart.getFullYear()) * 12 +
+          (now.getMonth() - lifetimeStart.getMonth());
+        if (now < addMonths(lifetimeStart, elapsedMonths)) elapsedMonths -= 1;
+
+        return clamp(elapsedMonths + 1, 1, total);
+      }
+
+      function getCurrentDurationUnitLabel(now, unitDuration) {
+        const duration =
+          getCalendarTime(addYears(lifetimeStart, 80)) -
+          getCalendarTime(lifetimeStart);
+        const elapsed = clamp(
+          getCalendarTime(now) - getCalendarTime(lifetimeStart),
+          0,
+          duration,
+        );
+        const total = Math.ceil(duration / unitDuration);
+        const current =
+          elapsed >= duration
+            ? total
+            : Math.floor(elapsed / unitDuration) + 1;
+
+        return `${clamp(current, 1, total)}/${total}`;
+      }
+
+      function getCalendarTime(date) {
+        return Date.UTC(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+          date.getHours(),
+          date.getMinutes(),
+          date.getSeconds(),
+          date.getMilliseconds(),
+        );
       }
 
       function getProgress(now) {
@@ -290,7 +742,11 @@
 
           if (fillRange.end <= fillRange.start) continue;
 
-          const marker = fillProgressRangeRect(rect, fillRange.start, fillRange.end);
+          const marker = fillProgressRangeRect(
+            rect,
+            fillRange.start,
+            fillRange.end,
+          );
           if (fillRange.showMarker) {
             markerX = marker.x;
             markerY = marker.y;
@@ -310,7 +766,9 @@
       }
 
       function makeEdges(size, count) {
-        return Array.from({ length: count + 1 }, (_, index) => Math.round((size * index) / count));
+        return Array.from({ length: count + 1 }, (_, index) =>
+          Math.round((size * index) / count),
+        );
       }
 
       function getCellRect(index, cols, xEdges, yEdges) {
@@ -327,12 +785,12 @@
 
       function getCellFillRange(page, index, segment) {
         if (page.period === "lifetime" && index === 0) {
-          const birthProgress = getYearProgress(new Date(1985, 3, 17, 3, 41, 0, 0));
+          const startProgress = getYearProgress(lifetimeStart);
           const end = index < segment.index ? 1 : segment.progress;
 
           return {
-            start: birthProgress,
-            end: Math.max(birthProgress, end),
+            start: startProgress,
+            end: Math.max(startProgress, end),
             showMarker: index === segment.index,
           };
         }
@@ -400,7 +858,11 @@
           const firstY = centerY - ((lines.length - 1) * lineHeight) / 2;
 
           for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
-            context.fillText(lines[lineIndex], centerX, firstY + lineIndex * lineHeight);
+            context.fillText(
+              lines[lineIndex],
+              centerX,
+              firstY + lineIndex * lineHeight,
+            );
           }
         }
       }
@@ -410,20 +872,27 @@
         const min = page.period === "week" ? 8 : 6;
         const max = page.period === "week" ? 12 : 11;
 
-        return clamp(Math.floor(Math.min(rect.width, rect.height) * scale), min, max);
+        return clamp(
+          Math.floor(Math.min(rect.width, rect.height) * scale),
+          min,
+          max,
+        );
       }
 
       function getGridLabelLines(page, index, now) {
-        if (page.period === "week") return [getWeekdayLabel(index), formatHourLabel(index % 24)];
+        if (page.period === "week")
+          return [getWeekdayLabel(index), formatHourLabel(index % 24)];
         return [getGridLabel(page, index, now)];
       }
 
       function getGridLabel(page, index, now) {
-        if (page.period === "lifetime") return String(1985 + index);
+        if (page.period === "lifetime")
+          return String(lifetimeStart.getFullYear() + index);
         if (page.period === "hour") return String(index).padStart(2, "0");
         if (page.period === "day") return formatHourLabel(index);
         if (page.period === "month") return `${getMonthName(now)} ${index + 1}`;
-        if (page.period === "year") return getMonthName(new Date(now.getFullYear(), index, 1));
+        if (page.period === "year")
+          return getMonthName(new Date(now.getFullYear(), index, 1));
         return String(index + 1);
       }
 
@@ -435,7 +904,9 @@
       }
 
       function getWeekdayLabel(hourIndex) {
-        return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][Math.floor(hourIndex / 24)];
+        return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][
+          Math.floor(hourIndex / 24)
+        ];
       }
 
       function getSegment(page, now, totalSegments) {
@@ -454,7 +925,10 @@
         const rawIndex = Math.floor(elapsed / segmentDuration);
         const index = Math.min(totalSegments - 1, rawIndex);
         const segmentStart = segmentDuration * index;
-        const progress = elapsed >= totalDuration ? 1 : (elapsed - segmentStart) / segmentDuration;
+        const progress =
+          elapsed >= totalDuration
+            ? 1
+            : (elapsed - segmentStart) / segmentDuration;
 
         return {
           index,
@@ -465,8 +939,16 @@
       function getMonthSegment(now) {
         const totalSegments = daysInMonth(now);
         const index = clamp(now.getDate() - 1, 0, totalSegments - 1);
-        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+        const start = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        );
+        const end = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate() + 1,
+        );
 
         return {
           index,
@@ -486,13 +968,18 @@
       }
 
       function getLifetimeSegment(now) {
-        const startYear = 1985;
         const totalSegments = segmentGrids.lifetime.segments;
-        const index = clamp(now.getFullYear() - startYear, 0, totalSegments - 1);
+        const end = addYears(lifetimeStart, 80);
+        const index = clamp(
+          now.getFullYear() - lifetimeStart.getFullYear(),
+          0,
+          totalSegments - 1,
+        );
+        const progress = now >= end ? 1 : getYearProgress(now);
 
         return {
           index,
-          progress: getYearProgress(now),
+          progress,
         };
       }
 
@@ -550,7 +1037,9 @@
         const viewportHeight = window.innerHeight;
         const naturalTop = (viewportHeight - readoutHeight) / 2;
         const naturalBottom = naturalTop + readoutHeight;
-        const collides = frontierY >= naturalTop - clearance && frontierY <= naturalBottom + clearance;
+        const collides =
+          frontierY >= naturalTop - clearance &&
+          frontierY <= naturalBottom + clearance;
 
         if (!collides) {
           setReadoutOffset(0);
@@ -586,14 +1075,20 @@
         const progress = getProgress(now);
         periodElement.textContent = getPageLabel(page, now);
         percentElement.textContent = `${(progress * 100).toFixed(page.decimalPlaces)}%`;
+        unitPositionElement.hidden = !unitPositionEnabled;
+        if (unitPositionEnabled) {
+          unitPositionElement.textContent = getUnitPositionLabel(page, now);
+        }
         draw(page, now, progress);
         requestAnimationFrame(render);
       }
 
       function getPageLabel(page, now) {
         if (page.period === "hour") return formatClockHourLabel(now);
-        if (page.period === "day") return `${getMonthName(now)} ${now.getDate()}`;
-        if (page.period === "week") return `${getMonthName(now)} week ${getMonthWeek(now)}`;
+        if (page.period === "day")
+          return `${getMonthName(now)} ${now.getDate()}`;
+        if (page.period === "week")
+          return `${getMonthName(now)} week ${getMonthWeek(now)}`;
         if (page.period === "month") return getMonthName(now);
         if (page.period === "year") return String(now.getFullYear());
         if (page.period === "lifetime") return "Life";
@@ -637,9 +1132,83 @@
         activePeriod = (activePeriod - 1 + periods.length) % periods.length;
       }
 
+      function isLifetimePage() {
+        return periods[activePeriod].period === "lifetime";
+      }
+
+      function isHourFlowPage() {
+        const page = periods[activePeriod];
+        return page.period === "hour" && page.view === "flow";
+      }
+
+      function getLongPressAction() {
+        if (isHourFlowPage()) return "unit-position";
+        if (isLifetimePage()) return "lifetime-editor";
+        return "";
+      }
+
       function playHopeAudio() {
         hopeAudio.currentTime = 0;
         hopeAudio.play().catch(() => {});
+      }
+
+      function openLifetimeEditor() {
+        lifetimeDateInput.value = formatDateLocal(lifetimeStart);
+        lifetimeTimeInput.value = formatTimeLocal(lifetimeStart);
+        lifetimeEditor.hidden = false;
+        try {
+          lifetimeDateInput.focus({ preventScroll: true });
+        } catch (error) {
+          lifetimeDateInput.focus();
+        }
+      }
+
+      function closeLifetimeEditor() {
+        lifetimeEditor.hidden = true;
+        clearLongPressTimer();
+        longPressTriggered = false;
+      }
+
+      function isLifetimeEditorOpen() {
+        return !lifetimeEditor.hidden;
+      }
+
+      function startLongPressTimer(event) {
+        const longPressAction = getLongPressAction();
+        if (!longPressAction || isLifetimeEditorOpen()) return;
+        if (event.pointerType === "mouse" && event.button !== 0) return;
+
+        clearLongPressTimer();
+        longPressTriggered = false;
+        longPressTimer = window.setTimeout(() => {
+          longPressTimer = 0;
+          longPressTriggered = true;
+          pointerTracking = false;
+          if (longPressAction === "unit-position") {
+            handleUnitPositionLongPress();
+          } else {
+            openLifetimeEditor();
+          }
+        }, 680);
+      }
+
+      function handleUnitPositionLongPress() {
+        toggleUnitPosition();
+        unitPositionElement.hidden = !unitPositionEnabled;
+      }
+
+      function clearLongPressTimer() {
+        if (!longPressTimer) return;
+        window.clearTimeout(longPressTimer);
+        longPressTimer = 0;
+      }
+
+      function cancelLongPressIfMoved(clientX, clientY) {
+        if (!longPressTimer) return;
+
+        const deltaX = clientX - pointerStartX;
+        const deltaY = clientY - pointerStartY;
+        if (Math.hypot(deltaX, deltaY) > 14) clearLongPressTimer();
       }
 
       function isDoubleTapAt(clientX, clientY) {
@@ -661,22 +1230,47 @@
       window.addEventListener("orientationchange", resizeCanvas);
 
       window.addEventListener("pointerdown", (event) => {
+        if (isLifetimeEditorOpen()) return;
+
         pointerStartX = event.clientX;
         pointerStartY = event.clientY;
         pointerStartTime = performance.now();
         pointerTracking = true;
+        startLongPressTimer(event);
+      });
+
+      window.addEventListener("pointermove", (event) => {
+        if (!pointerTracking) return;
+        cancelLongPressIfMoved(event.clientX, event.clientY);
       });
 
       window.addEventListener("pointerup", (event) => {
+        if (isLifetimeEditorOpen()) return;
+
+        if (longPressTriggered) {
+          event.preventDefault();
+          clearLongPressTimer();
+          longPressTriggered = false;
+          pointerTracking = false;
+          return;
+        }
+
+        clearLongPressTimer();
         if (!pointerTracking) return;
         pointerTracking = false;
 
         const deltaX = event.clientX - pointerStartX;
         const deltaY = event.clientY - pointerStartY;
         const elapsed = performance.now() - pointerStartTime;
-        const isSwipe = Math.abs(deltaX) > 52 && Math.abs(deltaX) > Math.abs(deltaY) * 1.35 && elapsed < 700;
+        const isSwipe =
+          Math.abs(deltaX) > 52 &&
+          Math.abs(deltaX) > Math.abs(deltaY) * 1.35 &&
+          elapsed < 700;
 
-        if (event.pointerType !== "touch" && isDoubleTapAt(event.clientX, event.clientY)) {
+        if (
+          event.pointerType !== "touch" &&
+          isDoubleTapAt(event.clientX, event.clientY)
+        ) {
           event.preventDefault();
           playHopeAudio();
           return;
@@ -690,14 +1284,26 @@
         }
       });
 
+      window.addEventListener("pointercancel", () => {
+        clearLongPressTimer();
+        pointerTracking = false;
+        longPressTriggered = false;
+      });
+
       window.addEventListener(
         "touchstart",
         (event) => {
+          if (isLifetimeEditorOpen()) return;
           if (event.touches.length !== 1) return;
           const touch = event.touches[0];
           touchStartX = touch.clientX;
           touchStartY = touch.clientY;
           touchStartTime = performance.now();
+          pointerStartX = touch.clientX;
+          pointerStartY = touch.clientY;
+          pointerStartTime = touchStartTime;
+          pointerTracking = true;
+          startLongPressTimer(event);
         },
         { passive: true },
       );
@@ -705,6 +1311,17 @@
       window.addEventListener(
         "touchend",
         (event) => {
+          if (isLifetimeEditorOpen()) return;
+
+          if (longPressTriggered) {
+            event.preventDefault();
+            clearLongPressTimer();
+            longPressTriggered = false;
+            pointerTracking = false;
+            return;
+          }
+
+          clearLongPressTimer();
           if (event.changedTouches.length !== 1) return;
           const touch = event.changedTouches[0];
           const deltaX = touch.clientX - touchStartX;
@@ -724,14 +1341,77 @@
       window.addEventListener(
         "touchmove",
         (event) => {
+          if (isLifetimeEditorOpen() && lifetimeEditor.contains(event.target))
+            return;
+          if (event.touches.length === 1) {
+            const touch = event.touches[0];
+            cancelLongPressIfMoved(touch.clientX, touch.clientY);
+          }
           event.preventDefault();
         },
         { passive: false },
       );
 
+      window.addEventListener("touchcancel", () => {
+        clearLongPressTimer();
+        pointerTracking = false;
+        longPressTriggered = false;
+      });
+
       window.addEventListener("keydown", (event) => {
+        if (isLifetimeEditorOpen()) {
+          if (event.key === "Escape") closeLifetimeEditor();
+          return;
+        }
+
         if (event.key === "ArrowRight") showPreviousPeriod();
         if (event.key === "ArrowLeft") showNextPeriod();
+      });
+
+      window.addEventListener("contextmenu", (event) => {
+        if (!getLongPressAction()) return;
+        event.preventDefault();
+        if (longPressTriggered) return;
+        clearLongPressTimer();
+        longPressTriggered = true;
+        pointerTracking = false;
+        if (isHourFlowPage()) {
+          handleUnitPositionLongPress();
+        } else {
+          openLifetimeEditor();
+        }
+      });
+
+      lifetimeEditor.addEventListener("click", (event) => {
+        if (event.target === lifetimeEditor) closeLifetimeEditor();
+      });
+
+      lifetimeEditor.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const nextStart = parseDateTimeLocal(
+          `${lifetimeDateInput.value}T${lifetimeTimeInput.value}`,
+        );
+        if (!nextStart) {
+          lifetimeDateInput.reportValidity();
+          lifetimeTimeInput.reportValidity();
+          return;
+        }
+
+        setLifetimeStart(nextStart);
+        closeLifetimeEditor();
+      });
+
+      lifetimeEditor.addEventListener("click", (event) => {
+        const action = event.target.dataset.action;
+        if (action === "cancel") {
+          closeLifetimeEditor();
+        }
+
+        if (action === "reset") {
+          resetLifetimeStart();
+          closeLifetimeEditor();
+        }
       });
 
       resizeCanvas();
