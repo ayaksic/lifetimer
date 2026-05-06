@@ -229,11 +229,8 @@ private struct FlowTimerFace: View {
     let unitPositionEnabled: Bool
 
     private var readoutHeight: Double {
-        unitPositionEnabled ? 82.0 : 62.0
+        TimerReadoutLayout.height(unitPositionEnabled: unitPositionEnabled)
     }
-
-    private let readoutClearance = 18.0
-    private let readoutMargin = 10.0
 
     private var progress: Double {
         period.progress(at: now)
@@ -243,9 +240,10 @@ private struct FlowTimerFace: View {
         GeometryReader { geometry in
             let fillHeight = geometry.size.height * progress
             let markerY = max(0, min(geometry.size.height, fillHeight))
-            let readoutOffset = readoutOffset(
+            let readoutOffset = TimerReadoutLayout.offset(
                 for: markerY,
-                in: geometry.size.height
+                in: geometry.size.height,
+                readoutHeight: readoutHeight
             )
 
             ZStack(alignment: .top) {
@@ -296,32 +294,6 @@ private struct FlowTimerFace: View {
         }
     }
 
-    private func readoutOffset(for markerY: Double, in viewportHeight: Double) -> Double {
-        let naturalTop = (viewportHeight - readoutHeight) / 2
-        let naturalBottom = naturalTop + readoutHeight
-        let collides = markerY >= naturalTop - readoutClearance &&
-            markerY <= naturalBottom + readoutClearance
-
-        guard collides else { return 0 }
-
-        let aboveTop = markerY - readoutClearance - readoutHeight
-        let belowTop = markerY + readoutClearance
-        let canFitAbove = aboveTop >= readoutMargin
-        let canFitBelow = belowTop + readoutHeight <= viewportHeight - readoutMargin
-
-        let targetTop: Double
-        if canFitAbove && markerY >= viewportHeight / 2 {
-            targetTop = aboveTop
-        } else if canFitBelow {
-            targetTop = belowTop
-        } else if canFitAbove {
-            targetTop = aboveTop
-        } else {
-            targetTop = naturalTop
-        }
-
-        return (targetTop - naturalTop).rounded()
-    }
 }
 
 private struct GridTimerFace: View {
@@ -329,53 +301,97 @@ private struct GridTimerFace: View {
     let now: Date
     let unitPositionEnabled: Bool
 
-    var body: some View {
-        ZStack {
-            Canvas(rendersAsynchronously: true) { context, size in
-                drawGrid(in: &context, size: size)
-            }
+    private var readoutHeight: Double {
+        TimerReadoutLayout.height(unitPositionEnabled: unitPositionEnabled)
+    }
 
-            TimerReadout(
-                period: period,
-                now: now,
-                unitPositionEnabled: unitPositionEnabled
+    var body: some View {
+        GeometryReader { geometry in
+            let grid = period.grid(containing: now)
+            let segment = period.segment(at: now, totalSegments: grid.segments)
+            let xEdges = makeEdges(geometry.size.width, count: grid.cols)
+            let yEdges = makeEdges(geometry.size.height, count: grid.rows)
+            let liveMarkerPoint = liveMarkerPoint(grid: grid, segment: segment, xEdges: xEdges, yEdges: yEdges)
+            let readoutOffset = TimerReadoutLayout.offset(
+                for: liveMarkerPoint.y,
+                in: geometry.size.height,
+                readoutHeight: readoutHeight
             )
+
+            ZStack {
+                Canvas(rendersAsynchronously: true) { context, size in
+                    drawGrid(
+                        grid: grid,
+                        segment: segment,
+                        xEdges: xEdges,
+                        yEdges: yEdges,
+                        liveMarkerPoint: liveMarkerPoint,
+                        in: &context,
+                        size: size
+                    )
+                }
+
+                TimerReadout(
+                    period: period,
+                    now: now,
+                    unitPositionEnabled: unitPositionEnabled
+                )
+                .offset(y: readoutOffset)
+                .animation(.easeOut(duration: 0.16), value: readoutOffset)
+            }
         }
     }
 
-    private func drawGrid(in context: inout GraphicsContext, size: CGSize) {
-        let grid = period.grid(containing: now)
-        let segment = period.segment(at: now, totalSegments: grid.segments)
-        let xEdges = makeEdges(size.width, count: grid.cols)
-        let yEdges = makeEdges(size.height, count: grid.rows)
-        var liveMarkerPoint = CGPoint(x: size.width / 2, y: size.height / 2)
-
+    private func drawGrid(
+        grid: SegmentGrid,
+        segment: SegmentProgress,
+        xEdges: [CGFloat],
+        yEdges: [CGFloat],
+        liveMarkerPoint: CGPoint,
+        in context: inout GraphicsContext,
+        size: CGSize
+    ) {
         context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(.lifeRemaining))
 
         for index in 0..<grid.segments {
             let rect = cellRect(index: index, cols: grid.cols, xEdges: xEdges, yEdges: yEdges)
             let fillRange = period.cellFillRange(for: index, segment: segment)
 
-            let marker: CGPoint
             if fillRange.end > fillRange.start {
-                marker = fillProgressRangeRect(
+                _ = fillProgressRangeRect(
                     rect,
                     startProgress: fillRange.start,
                     endProgress: fillRange.end,
                     in: &context
                 )
             } else {
-                marker = markerPoint(in: rect, progress: fillRange.end)
-            }
-
-            if fillRange.showMarker {
-                liveMarkerPoint = marker
+                continue
             }
         }
 
         drawGridLines(xEdges: xEdges, yEdges: yEdges, size: size, in: &context)
         drawGridLabels(grid: grid, xEdges: xEdges, yEdges: yEdges, in: &context)
         drawLiveMarker(at: liveMarkerPoint, size: size, in: &context)
+    }
+
+    private func liveMarkerPoint(
+        grid: SegmentGrid,
+        segment: SegmentProgress,
+        xEdges: [CGFloat],
+        yEdges: [CGFloat]
+    ) -> CGPoint {
+        for index in 0..<grid.segments {
+            let fillRange = period.cellFillRange(for: index, segment: segment)
+            guard fillRange.showMarker else { continue }
+
+            let rect = cellRect(index: index, cols: grid.cols, xEdges: xEdges, yEdges: yEdges)
+            return markerPoint(in: rect, progress: fillRange.end)
+        }
+
+        return CGPoint(
+            x: xEdges.last.map { $0 / 2 } ?? 0,
+            y: yEdges.last.map { $0 / 2 } ?? 0
+        )
     }
 
     private func makeEdges(_ size: CGFloat, count: Int) -> [CGFloat] {
@@ -538,6 +554,42 @@ private struct GridTimerFace: View {
     }
 }
 
+private enum TimerReadoutLayout {
+    private static let clearance = 18.0
+    private static let margin = 10.0
+
+    static func height(unitPositionEnabled: Bool) -> Double {
+        unitPositionEnabled ? 82.0 : 62.0
+    }
+
+    static func offset(for markerY: Double, in viewportHeight: Double, readoutHeight: Double) -> Double {
+        let naturalTop = (viewportHeight - readoutHeight) / 2
+        let naturalBottom = naturalTop + readoutHeight
+        let collides = markerY >= naturalTop - clearance &&
+            markerY <= naturalBottom + clearance
+
+        guard collides else { return 0 }
+
+        let aboveTop = markerY - clearance - readoutHeight
+        let belowTop = markerY + clearance
+        let canFitAbove = aboveTop >= margin
+        let canFitBelow = belowTop + readoutHeight <= viewportHeight - margin
+
+        let targetTop: Double
+        if canFitAbove && markerY >= viewportHeight / 2 {
+            targetTop = aboveTop
+        } else if canFitBelow {
+            targetTop = belowTop
+        } else if canFitAbove {
+            targetTop = aboveTop
+        } else {
+            targetTop = naturalTop
+        }
+
+        return (targetTop - naturalTop).rounded()
+    }
+}
+
 private struct TimerReadout: View {
     let period: LifePeriod
     let now: Date
@@ -650,6 +702,14 @@ private enum LifePeriod: Int, CaseIterable, Identifiable {
         return calendar
     }
 
+    private static let unitPositionFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.locale = Locale(identifier: "en_US")
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        return formatter
+    }()
+
     var decimalPlaces: Int {
         switch self {
         case .hour:
@@ -687,10 +747,10 @@ private enum LifePeriod: Int, CaseIterable, Identifiable {
             return "1/1"
         case .year:
             let total = 80
-            return "\(currentCalendarYearNumber(at: date, total: total))/\(total)"
+            return formatUnitPosition(currentCalendarYearNumber(at: date, total: total), total: total)
         case .month:
             let total = 80 * 12
-            return "\(currentCalendarMonthNumber(at: date, total: total))/\(total)"
+            return formatUnitPosition(currentCalendarMonthNumber(at: date, total: total), total: total)
         case .week:
             return currentDurationUnitString(at: date, unitDuration: 7 * 24 * 60 * 60)
         case .day:
@@ -698,6 +758,12 @@ private enum LifePeriod: Int, CaseIterable, Identifiable {
         case .hour:
             return currentDurationUnitString(at: date, unitDuration: 60 * 60)
         }
+    }
+
+    private func formatUnitPosition(_ current: Int, total: Int) -> String {
+        let currentText = Self.unitPositionFormatter.string(from: NSNumber(value: current)) ?? String(current)
+        let totalText = Self.unitPositionFormatter.string(from: NSNumber(value: total)) ?? String(total)
+        return "\(currentText)/\(totalText)"
     }
 
     func label(for date: Date) -> String {
@@ -994,7 +1060,7 @@ private enum LifePeriod: Int, CaseIterable, Identifiable {
         let total = Int(ceil(duration / unitDuration))
         let current = elapsed >= duration ? total : Int(floor(elapsed / unitDuration)) + 1
 
-        return "\(min(total, max(1, current)))/\(total)"
+        return formatUnitPosition(min(total, max(1, current)), total: total)
     }
 
     private func calendarTime(for date: Date) -> Date {
