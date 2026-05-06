@@ -1121,7 +1121,8 @@
       }
 
       function getMonthWeek(now) {
-        return Math.floor((now.getDate() - 1) / 7) + 1;
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        return Math.floor((monthStart.getDay() + now.getDate() - 1) / 7) + 1;
       }
 
       function showNextPeriod() {
