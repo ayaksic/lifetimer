@@ -57,6 +57,14 @@ enum LifePeriod: Int, CaseIterable, Identifiable {
         return calendar
     }
 
+    private static let unitPositionFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.locale = Locale(identifier: "en_US")
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        return formatter
+    }()
+
     var decimalPlaces: Int {
         switch self {
         case .hour:
@@ -207,10 +215,16 @@ enum LifePeriod: Int, CaseIterable, Identifiable {
             return "1/1"
         case .year:
             let total = 80
-            return "\(currentCalendarYearNumber(at: date, lifetimeStart: lifetimeStart, total: total))/\(total)"
+            return formatUnitPosition(
+                currentCalendarYearNumber(at: date, lifetimeStart: lifetimeStart, total: total),
+                total: total
+            )
         case .month:
             let total = 80 * 12
-            return "\(currentCalendarMonthNumber(at: date, lifetimeStart: lifetimeStart, total: total))/\(total)"
+            return formatUnitPosition(
+                currentCalendarMonthNumber(at: date, lifetimeStart: lifetimeStart, total: total),
+                total: total
+            )
         case .week:
             return currentDurationUnitLabel(at: date, lifetimeStart: lifetimeStart, unitDuration: 7 * 24 * 60 * 60)
         case .day:
@@ -218,6 +232,12 @@ enum LifePeriod: Int, CaseIterable, Identifiable {
         case .hour:
             return currentDurationUnitLabel(at: date, lifetimeStart: lifetimeStart, unitDuration: 60 * 60)
         }
+    }
+
+    private func formatUnitPosition(_ current: Int, total: Int) -> String {
+        let currentText = Self.unitPositionFormatter.string(from: NSNumber(value: current)) ?? String(current)
+        let totalText = Self.unitPositionFormatter.string(from: NSNumber(value: total)) ?? String(total)
+        return "\(currentText)/\(totalText)"
     }
 
     private func monthName(for date: Date) -> String {
@@ -375,7 +395,7 @@ enum LifePeriod: Int, CaseIterable, Identifiable {
         let total = Int(ceil(duration / unitDuration))
         let current = elapsed >= duration ? total : Int(floor(elapsed / unitDuration)) + 1
 
-        return "\(min(total, max(1, current)))/\(total)"
+        return formatUnitPosition(min(total, max(1, current)), total: total)
     }
 
     private func calendarTime(for date: Date) -> TimeInterval {

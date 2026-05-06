@@ -165,7 +165,7 @@ private struct HourMiniProgressBar: View {
             Capsule(style: .continuous)
                 .fill(Color.lifeRemaining.opacity(0.16))
 
-            HourGradientFill(progress: progress)
+            HourMiniGradientFill(progress: progress)
 
             HourMiniTicks(height: height)
         }
@@ -177,6 +177,31 @@ private struct HourMiniProgressBar: View {
 
     private var progress: Double {
         max(fallbackProgress, hourProgress(at: Date(), start: start, end: end))
+    }
+}
+
+private struct HourMiniGradientFill: View {
+    let progress: Double
+
+    var body: some View {
+        Canvas { context, size in
+            let clampedProgress = min(1, max(0, progress))
+            let fillWidth = size.width * clampedProgress
+            guard fillWidth > 0 else { return }
+
+            let capsule = Path(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: size.height / 2)
+            var fillContext = context
+            fillContext.clip(to: Path(CGRect(x: 0, y: 0, width: fillWidth, height: size.height)))
+            fillContext.fill(
+                capsule,
+                with: .linearGradient(
+                    lifeHeatGradient,
+                    startPoint: .zero,
+                    endPoint: CGPoint(x: size.width, y: 0)
+                )
+            )
+        }
+        .allowsHitTesting(false)
     }
 }
 
@@ -274,6 +299,18 @@ private extension LinearGradient {
         endPoint: .trailing
     )
 }
+
+private let lifeHeatGradient = Gradient(stops: [
+    .init(color: .lifeHeatMidnight, location: 0.00),
+    .init(color: .lifeHeatTeal, location: 0.12),
+    .init(color: .lifeHeatGreen, location: 0.25),
+    .init(color: .lifeHeatLime, location: 0.40),
+    .init(color: .lifeHeatYellow, location: 0.55),
+    .init(color: .lifeHeatGold, location: 0.68),
+    .init(color: .lifeHeatOrange, location: 0.78),
+    .init(color: .lifeHeatVermilion, location: 0.90),
+    .init(color: .lifeHeatRed, location: 1.00)
+])
 
 private struct HeatColorStop {
     let progress: Double
