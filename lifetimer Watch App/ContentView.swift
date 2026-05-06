@@ -20,7 +20,7 @@ struct ContentView: View {
     private let crownNavigationLimit = 1_000.0
 
     @AppStorage("lifeTimerUnitPositionEnabled") private var unitPositionEnabled = false
-    @State private var hopePlayer = HopePlayer()
+    @State private var doorbellPlayer = DoorbellPlayer()
     @State private var pageIndex = 0
     @State private var crownValue = 0.0
     @State private var pendingCrownDetents = 0.0
@@ -77,7 +77,7 @@ struct ContentView: View {
         .simultaneousGesture(
             TapGesture()
                 .onEnded {
-                    hopePlayer.play()
+                    doorbellPlayer.play()
                 }
         )
         .onAppear {
@@ -172,11 +172,11 @@ private struct HandGestureAdvanceButton: View {
     }
 }
 
-private final class HopePlayer {
+private final class DoorbellPlayer {
     private var player: AVAudioPlayer?
 
     init() {
-        guard let url = Bundle.main.url(forResource: "hope", withExtension: "mp3") else {
+        guard let url = Bundle.main.url(forResource: "doorbell-ding-dong", withExtension: "wav") else {
             return
         }
 
@@ -195,7 +195,6 @@ private final class HopePlayer {
     func play() {
         guard let player else { return }
 
-        WKInterfaceDevice.current().play(.success)
         player.currentTime = 0
         player.play()
     }
@@ -866,7 +865,9 @@ private enum LifePeriod: Int, CaseIterable, Identifiable {
 
     private func monthWeek(for date: Date) -> Int {
         let day = Self.calendar.component(.day, from: date)
-        return ((day - 1) / 7) + 1
+        let monthStart = Self.calendar.dateInterval(of: .month, for: date)!.start
+        let firstWeekdayOffset = Self.calendar.component(.weekday, from: monthStart) - 1
+        return ((firstWeekdayOffset + day - 1) / 7) + 1
     }
 
     private func monthGrid(dayCount: Int) -> SegmentGrid {

@@ -242,14 +242,10 @@ enum LifePeriod {
     }
 
     func timelineHorizon(after date: Date) -> Date {
-        let interval = range(containing: date)
-
         switch self {
         case .hour:
-            return max(
-                date.addingTimeInterval(15 * 60),
-                interval.end.addingTimeInterval(15 * 60)
-            )
+            let coverageEnd = date.addingTimeInterval(24 * 60 * 60)
+            return Self.calendar.dateInterval(of: .hour, for: coverageEnd)?.end ?? coverageEnd
         case .day:
             return date.addingTimeInterval(15 * 60)
         }
