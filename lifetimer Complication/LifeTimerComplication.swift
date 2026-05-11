@@ -24,6 +24,10 @@ struct LifeTimerEntry: TimelineEntry {
         String(format: "%.\(period.percentDecimalPlaces)f%%", progress * 100)
     }
 
+    var smallPercentText: String {
+        String(format: "%.\(period.smallPercentDecimalPlaces)f%%", progress * 100)
+    }
+
 }
 
 struct LifeTimerProvider: TimelineProvider {
@@ -131,7 +135,7 @@ struct LifeTimerComplicationView: View {
                 complicationProgressView(allowsDateRelativeProgress: false)
                     .progressViewStyle(.circular)
 
-                Text(entry.percentText)
+                Text(entry.smallPercentText)
                     .font(.system(size: 10, weight: .heavy, design: .rounded))
                     .monospacedDigit()
                     .minimumScaleFactor(0.55)
@@ -142,7 +146,7 @@ struct LifeTimerComplicationView: View {
             complicationProgressView()
                 .progressViewStyle(.circular)
                 .widgetLabel {
-                    Text(entry.percentText)
+                    Text(entry.smallPercentText)
                         .monospacedDigit()
                 }
 
@@ -390,6 +394,15 @@ enum LifePeriod {
             return 2
         case .day:
             return 2
+        }
+    }
+
+    fileprivate var smallPercentDecimalPlaces: Int {
+        switch self {
+        case .hour:
+            return 0
+        case .day:
+            return 1
         }
     }
 
