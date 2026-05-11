@@ -18,7 +18,7 @@ struct ContentView: View {
     @State private var showingLifetimeEditor = false
     @State private var liveActivityIsRunning = false
     @State private var liveActivityIsAvailable = false
-    private let soundPlayer = HopeSoundPlayer()
+    private let soundPlayer = LifeTimerSoundPlayer()
 
     private let pages = TimerPage.all
 
@@ -39,7 +39,7 @@ struct ContentView: View {
         .persistentSystemOverlays(.hidden)
         .gesture(swipeGesture)
         .onTapGesture(count: 2) {
-            soundPlayer.play()
+            handleDoubleTap()
         }
         .onLongPressGesture(minimumDuration: 0.68) {
             handleLongPress()
@@ -130,6 +130,16 @@ struct ContentView: View {
         }
     }
 
+    private func handleDoubleTap() {
+        let page = pages[pageIndex]
+
+        if page.period == .hour && page.style == .flow {
+            soundPlayer.play(.nonsense)
+        } else if page.period == .day && page.style == .flow {
+            soundPlayer.play(.hope)
+        }
+    }
+
     private func applyLiveActivityStatus(_ status: LifeTimerLiveActivityStatus) {
         liveActivityIsRunning = status.isRunning
         liveActivityIsAvailable = status.isAvailable
@@ -149,22 +159,42 @@ struct ContentView: View {
     }
 }
 
-private final class HopeSoundPlayer {
-    private var player: AVAudioPlayer?
+private enum LifeTimerSound: CaseIterable, Hashable {
+    case hope
+    case nonsense
+
+    var resource: (name: String, extension: String) {
+        switch self {
+        case .hope:
+            return ("hope", "mp3")
+        case .nonsense:
+            return ("nonsense", "wav")
+        }
+    }
+}
+
+private final class LifeTimerSoundPlayer {
+    private var players: [LifeTimerSound: AVAudioPlayer] = [:]
 
     init() {
-        guard let url = Bundle.main.url(forResource: "hope", withExtension: "mp3") else { return }
+        for sound in LifeTimerSound.allCases {
+            let resource = sound.resource
+            guard let url = Bundle.main.url(forResource: resource.name, withExtension: resource.extension) else {
+                continue
+            }
 
-        do {
-            player = try AVAudioPlayer(contentsOf: url)
-            player?.prepareToPlay()
-        } catch {
-            player = nil
+            do {
+                let player = try AVAudioPlayer(contentsOf: url)
+                player.prepareToPlay()
+                players[sound] = player
+            } catch {
+                continue
+            }
         }
     }
 
-    func play() {
-        guard let player else { return }
+    func play(_ sound: LifeTimerSound) {
+        guard let player = players[sound] else { return }
         player.currentTime = 0
         player.play()
     }
