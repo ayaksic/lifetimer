@@ -6,10 +6,10 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"
     />
-    <meta name="theme-color" content="#fbf8f3" />
+    <meta name="theme-color" content="#161312" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Life Timer" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="application-name" content="Life Timer" />
     <link rel="manifest" href="site.webmanifest" />
@@ -23,7 +23,7 @@
     <title>Life Timer</title>
     <style>
       :root {
-        color-scheme: light;
+        color-scheme: dark light;
         --elapsed: #b66a5f;
         --remaining: #fbf8f3;
         --live: #d7ff2f;
@@ -257,6 +257,7 @@
   <body>
     <canvas id="progress" aria-hidden="true"></canvas>
     <audio id="hope-audio" src="hope.mp3" preload="auto"></audio>
+    <audio id="nonsense-audio" src="nonsense.wav" preload="auto"></audio>
     <main class="readout" aria-live="off">
       <div class="center">
         <span class="period" id="period">Hour</span>
@@ -309,6 +310,7 @@
       const unitPositionElement = document.getElementById("unit-position");
       const centerElement = document.querySelector(".center");
       const hopeAudio = document.getElementById("hope-audio");
+      const nonsenseAudio = document.getElementById("nonsense-audio");
       const lifetimeEditor = document.getElementById("lifetime-editor");
       const lifetimeDateInput = document.getElementById("lifetime-start-date");
       const lifetimeTimeInput = document.getElementById("lifetime-start-time");
@@ -323,6 +325,7 @@
       const defaultLifetimeStart = new Date(1985, 3, 17, 3, 41, 0, 0);
       const lifetimeStartStorageKey = "lifeTimerLifetimeStart";
       const unitPositionStorageKey = "lifeTimerUnitPositionEnabled";
+      const unitPositionNumberFormatter = new Intl.NumberFormat("en-US");
       const lifeUnitDurations = {
         week: 7 * 24 * 60 * 60 * 1000,
         day: 24 * 60 * 60 * 1000,
@@ -452,9 +455,6 @@
       let lastTapTime = 0;
       let lastTapX = 0;
       let lastTapY = 0;
-      let touchStartX = 0;
-      let touchStartY = 0;
-      let touchStartTime = 0;
       let longPressTimer = 0;
       let longPressTriggered = false;
 
@@ -616,12 +616,18 @@
 
         if (page.period === "year") {
           const total = 80;
-          return `${getCurrentCalendarYearNumber(now, total)}/${total}`;
+          return formatUnitPosition(
+            getCurrentCalendarYearNumber(now, total),
+            total,
+          );
         }
 
         if (page.period === "month") {
           const total = 80 * 12;
-          return `${getCurrentCalendarMonthNumber(now, total)}/${total}`;
+          return formatUnitPosition(
+            getCurrentCalendarMonthNumber(now, total),
+            total,
+          );
         }
 
         if (page.period === "week") {
@@ -633,6 +639,12 @@
         }
 
         return getCurrentDurationUnitLabel(now, lifeUnitDurations.hour);
+      }
+
+      function formatUnitPosition(current, total) {
+        return `${unitPositionNumberFormatter.format(
+          current,
+        )}/${unitPositionNumberFormatter.format(total)}`;
       }
 
       function getCurrentCalendarYearNumber(now, total) {
@@ -672,7 +684,7 @@
             ? total
             : Math.floor(elapsed / unitDuration) + 1;
 
-        return `${clamp(current, 1, total)}/${total}`;
+        return formatUnitPosition(clamp(current, 1, total), total);
       }
 
       function getCalendarTime(date) {
@@ -1142,15 +1154,26 @@
         return page.period === "hour" && page.view === "flow";
       }
 
+      function isDayFlowPage() {
+        const page = periods[activePeriod];
+        return page.period === "day" && page.view === "flow";
+      }
+
       function getLongPressAction() {
-        if (isHourFlowPage()) return "unit-position";
+        if (isHourFlowPage()) return "hour-flow";
         if (isLifetimePage()) return "lifetime-editor";
         return "";
       }
 
-      function playHopeAudio() {
-        hopeAudio.currentTime = 0;
-        hopeAudio.play().catch(() => {});
+      function getDoubleTapAudio() {
+        if (isHourFlowPage()) return nonsenseAudio;
+        if (isDayFlowPage()) return hopeAudio;
+        return null;
+      }
+
+      function playAudio(audio) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
       }
 
       function openLifetimeEditor() {
@@ -1185,15 +1208,15 @@
           longPressTimer = 0;
           longPressTriggered = true;
           pointerTracking = false;
-          if (longPressAction === "unit-position") {
-            handleUnitPositionLongPress();
+          if (longPressAction === "hour-flow") {
+            handleHourFlowLongPress();
           } else {
             openLifetimeEditor();
           }
         }, 680);
       }
 
-      function handleUnitPositionLongPress() {
+      function handleHourFlowLongPress() {
         toggleUnitPosition();
         unitPositionElement.hidden = !unitPositionEnabled;
       }
@@ -1268,12 +1291,14 @@
           Math.abs(deltaX) > Math.abs(deltaY) * 1.35 &&
           elapsed < 700;
 
+        const doubleTapAudio = getDoubleTapAudio();
         if (
+          doubleTapAudio &&
           event.pointerType !== "touch" &&
           isDoubleTapAt(event.clientX, event.clientY)
         ) {
           event.preventDefault();
-          playHopeAudio();
+          playAudio(doubleTapAudio);
           return;
         }
 
@@ -1297,12 +1322,9 @@
           if (isLifetimeEditorOpen()) return;
           if (event.touches.length !== 1) return;
           const touch = event.touches[0];
-          touchStartX = touch.clientX;
-          touchStartY = touch.clientY;
-          touchStartTime = performance.now();
           pointerStartX = touch.clientX;
           pointerStartY = touch.clientY;
-          pointerStartTime = touchStartTime;
+          pointerStartTime = performance.now();
           pointerTracking = true;
           startLongPressTimer(event);
         },
@@ -1325,16 +1347,17 @@
           clearLongPressTimer();
           if (event.changedTouches.length !== 1) return;
           const touch = event.changedTouches[0];
-          const deltaX = touch.clientX - touchStartX;
-          const deltaY = touch.clientY - touchStartY;
-          const elapsed = performance.now() - touchStartTime;
+          const deltaX = touch.clientX - pointerStartX;
+          const deltaY = touch.clientY - pointerStartY;
+          const elapsed = performance.now() - pointerStartTime;
           const isTap = Math.hypot(deltaX, deltaY) < 28 && elapsed < 450;
+          const doubleTapAudio = getDoubleTapAudio();
 
-          if (!isTap) return;
+          if (!isTap || !doubleTapAudio) return;
           if (!isDoubleTapAt(touch.clientX, touch.clientY)) return;
 
           event.preventDefault();
-          playHopeAudio();
+          playAudio(doubleTapAudio);
         },
         { passive: false },
       );
@@ -1376,8 +1399,9 @@
         clearLongPressTimer();
         longPressTriggered = true;
         pointerTracking = false;
-        if (isHourFlowPage()) {
-          handleUnitPositionLongPress();
+        const longPressAction = getLongPressAction();
+        if (longPressAction === "hour-flow") {
+          handleHourFlowLongPress();
         } else {
           openLifetimeEditor();
         }
