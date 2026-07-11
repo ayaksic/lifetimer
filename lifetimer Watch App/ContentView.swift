@@ -7,19 +7,16 @@
 
 import SwiftUI
 import AVFoundation
+import LifeTimerCore
 import WatchKit
 import WidgetKit
-
-private let lifetimeStart = LifePeriod.calendar.date(
-    from: DateComponents(year: 1985, month: 4, day: 17, hour: 3, minute: 41)
-)!
 
 struct ContentView: View {
     private let pages = TimerPage.all
     private let crownClicksPerPage = 2.0
     private let crownNavigationLimit = 1_000.0
 
-    @AppStorage("lifeTimerUnitPositionEnabled") private var unitPositionEnabled = false
+    @State private var settings = LifeTimerSettingsRepository.shared.current()
     @State private var doorbellPlayer = DoorbellPlayer()
     @State private var pageIndex = 0
     @State private var crownValue = 0.0
@@ -32,6 +29,7 @@ struct ContentView: View {
                 TimerFace(
                     page: pages[pageIndex],
                     now: timeline.date,
+                    lifetimeStart: settings.lifetimeStart,
                     unitPositionEnabled: unitPositionEnabled
                 )
             }
@@ -70,7 +68,9 @@ struct ContentView: View {
         .simultaneousGesture(
             LongPressGesture(minimumDuration: 0.68)
                 .onEnded { _ in
-                    unitPositionEnabled.toggle()
+                    settings = LifeTimerSettingsRepository.shared.update(
+                        unitPositionEnabled: !settings.unitPositionEnabled
+                    )
                     WKInterfaceDevice.current().play(.click)
                 }
         )
@@ -81,6 +81,11 @@ struct ContentView: View {
                 }
         )
         .onAppear {
+            LifeTimerSettingsRepository.shared.start()
+            settings = LifeTimerSettingsRepository.shared.current()
+            Task {
+                await LifeTimerSettingsRepository.shared.refreshFromCloud()
+            }
             crownValue = 0
             pendingCrownDetents = 0
             isCrownFocused = true
@@ -92,11 +97,21 @@ struct ContentView: View {
         .onOpenURL { url in
             openPage(from: url)
         }
+        .onReceive(
+            NotificationCenter.default.publisher(for: LifeTimerSettingsRepository.didChangeNotification)
+        ) { _ in
+            settings = LifeTimerSettingsRepository.shared.current()
+            WidgetCenter.shared.reloadAllTimelines()
+        }
     }
 
     private func showNextPeriod() {
         pageIndex = wrappedIndex(pageIndex + 1)
         pendingCrownDetents = 0
+    }
+
+    private var unitPositionEnabled: Bool {
+        settings.unitPositionEnabled
     }
 
     private func showPreviousPeriod() {
@@ -203,6 +218,7 @@ private final class DoorbellPlayer {
 private struct TimerFace: View {
     let page: TimerPage
     let now: Date
+    let lifetimeStart: Date
     let unitPositionEnabled: Bool
 
     var body: some View {
@@ -211,12 +227,14 @@ private struct TimerFace: View {
             FlowTimerFace(
                 period: page.period,
                 now: now,
+                lifetimeStart: lifetimeStart,
                 unitPositionEnabled: unitPositionEnabled
             )
         case .grid:
             GridTimerFace(
                 period: page.period,
                 now: now,
+                lifetimeStart: lifetimeStart,
                 unitPositionEnabled: unitPositionEnabled
             )
         }
@@ -226,6 +244,7 @@ private struct TimerFace: View {
 private struct FlowTimerFace: View {
     let period: LifePeriod
     let now: Date
+    let lifetimeStart: Date
     let unitPositionEnabled: Bool
 
     private var readoutHeight: Double {
@@ -233,7 +252,7 @@ private struct FlowTimerFace: View {
     }
 
     private var progress: Double {
-        period.progress(at: now)
+        period.progress(at: now, lifetimeStart: lifetimeStart)
     }
 
     var body: some View {
@@ -269,7 +288,7 @@ private struct FlowTimerFace: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.65)
 
-                    Text(period.percentString(at: now))
+                    Text(period.percentString(at: now, lifetimeStart: lifetimeStart))
                         .font(.system(size: 30, weight: .heavy, design: .monospaced))
                         .foregroundStyle(Color.lifeInk)
                         .monospacedDigit()
@@ -277,7 +296,7 @@ private struct FlowTimerFace: View {
                         .minimumScaleFactor(0.35)
 
                     if unitPositionEnabled {
-                        Text(period.unitPositionString(at: now))
+                        Text(period.unitPositionLabel(at: now, lifetimeStart: lifetimeStart))
                             .font(.system(size: 14, weight: .bold, design: .rounded))
                             .foregroundStyle(Color.lifeInk)
                             .monospacedDigit()
@@ -299,6 +318,7 @@ private struct FlowTimerFace: View {
 private struct GridTimerFace: View {
     let period: LifePeriod
     let now: Date
+    let lifetimeStart: Date
     let unitPositionEnabled: Bool
 
     private var readoutHeight: Double {
@@ -308,7 +328,7 @@ private struct GridTimerFace: View {
     var body: some View {
         GeometryReader { geometry in
             let grid = period.grid(containing: now)
-            let segment = period.segment(at: now, totalSegments: grid.segments)
+            let segment = period.segment(at: now, lifetimeStart: lifetimeStart, totalSegments: grid.segments)
             let xEdges = makeEdges(geometry.size.width, count: grid.cols)
             let yEdges = makeEdges(geometry.size.height, count: grid.rows)
             let liveMarkerPoint = liveMarkerPoint(grid: grid, segment: segment, xEdges: xEdges, yEdges: yEdges)
@@ -334,6 +354,7 @@ private struct GridTimerFace: View {
                 TimerReadout(
                     period: period,
                     now: now,
+                    lifetimeStart: lifetimeStart,
                     unitPositionEnabled: unitPositionEnabled
                 )
                 .offset(y: readoutOffset)
@@ -355,7 +376,7 @@ private struct GridTimerFace: View {
 
         for index in 0..<grid.segments {
             let rect = cellRect(index: index, cols: grid.cols, xEdges: xEdges, yEdges: yEdges)
-            let fillRange = period.cellFillRange(for: index, segment: segment)
+            let fillRange = period.cellFillRange(for: index, segment: segment, lifetimeStart: lifetimeStart)
 
             if fillRange.end > fillRange.start {
                 _ = fillProgressRangeRect(
@@ -381,7 +402,7 @@ private struct GridTimerFace: View {
         yEdges: [CGFloat]
     ) -> CGPoint {
         for index in 0..<grid.segments {
-            let fillRange = period.cellFillRange(for: index, segment: segment)
+            let fillRange = period.cellFillRange(for: index, segment: segment, lifetimeStart: lifetimeStart)
             guard fillRange.showMarker else { continue }
 
             let rect = cellRect(index: index, cols: grid.cols, xEdges: xEdges, yEdges: yEdges)
@@ -502,7 +523,7 @@ private struct GridTimerFace: View {
 
         for index in 0..<grid.segments {
             let rect = cellRect(index: index, cols: grid.cols, xEdges: xEdges, yEdges: yEdges)
-            let lines = period.gridLabelLines(for: index, at: now)
+            let lines = period.gridLabelLines(for: index, at: now, lifetimeStart: lifetimeStart)
             let centerX = rect.midX
             let firstY = rect.midY - (CGFloat(lines.count - 1) * lineHeight) / 2
 
@@ -593,6 +614,7 @@ private enum TimerReadoutLayout {
 private struct TimerReadout: View {
     let period: LifePeriod
     let now: Date
+    let lifetimeStart: Date
     let unitPositionEnabled: Bool
 
     var body: some View {
@@ -603,7 +625,7 @@ private struct TimerReadout: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.65)
 
-            Text(period.percentString(at: now))
+            Text(period.percentString(at: now, lifetimeStart: lifetimeStart))
                 .font(.system(size: 30, weight: .heavy, design: .monospaced))
                 .foregroundStyle(Color.lifeInk)
                 .monospacedDigit()
@@ -611,7 +633,7 @@ private struct TimerReadout: View {
                 .minimumScaleFactor(0.35)
 
             if unitPositionEnabled {
-                Text(period.unitPositionString(at: now))
+                Text(period.unitPositionLabel(at: now, lifetimeStart: lifetimeStart))
                     .font(.system(size: 14, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.lifeInk)
                     .monospacedDigit()
@@ -622,456 +644,6 @@ private struct TimerReadout: View {
         .padding(.horizontal, 10)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .shadow(color: Color.white.opacity(0.7), radius: 10, y: 1)
-    }
-}
-
-private struct TimerPage: Identifiable {
-    let period: LifePeriod
-    let style: TimerPageStyle
-
-    var id: String {
-        "\(style.rawValue)-\(period.rawValue)"
-    }
-
-    static let all: [TimerPage] = {
-        LifePeriod.allCases.map { TimerPage(period: $0, style: .flow) }
-            + LifePeriod.allCases.map { TimerPage(period: $0, style: .grid) }
-    }()
-
-    static func deepLinkTarget(for url: URL) -> TimerPage? {
-        guard url.scheme == "lifetimer", url.host == "timer" else {
-            return nil
-        }
-
-        guard let periodName = url.pathComponents.dropFirst().first,
-              let period = LifePeriod.deepLinkPeriod(named: periodName) else {
-            return nil
-        }
-
-        return TimerPage(period: period, style: .flow)
-    }
-}
-
-private enum TimerPageStyle: String {
-    case flow
-    case grid
-}
-
-private struct SegmentGrid {
-    let rows: Int
-    let cols: Int
-    let segments: Int
-}
-
-private struct SegmentProgress {
-    let index: Int
-    let progress: Double
-}
-
-private struct CellFillRange {
-    let start: Double
-    let end: Double
-    let showMarker: Bool
-}
-
-private enum LifePeriod: Int, CaseIterable, Identifiable {
-    case hour
-    case day
-    case week
-    case month
-    case year
-    case lifetime
-
-    var id: Int { rawValue }
-
-    static func deepLinkPeriod(named name: String) -> LifePeriod? {
-        switch name {
-        case "hour":
-            return .hour
-        case "day":
-            return .day
-        default:
-            return nil
-        }
-    }
-
-    static var calendar: Calendar {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.firstWeekday = 1
-        calendar.timeZone = .current
-        return calendar
-    }
-
-    private static let unitPositionFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.locale = Locale(identifier: "en_US")
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        return formatter
-    }()
-
-    var decimalPlaces: Int {
-        switch self {
-        case .hour:
-            4
-        case .day:
-            5
-        case .week:
-            6
-        case .month:
-            7
-        case .year:
-            8
-        case .lifetime:
-            9
-        }
-    }
-
-    func progress(at date: Date) -> Double {
-        let interval = range(containing: date)
-        let duration = interval.end.timeIntervalSince(interval.start)
-        guard duration > 0 else { return 0 }
-
-        let elapsed = date.timeIntervalSince(interval.start)
-        return min(1, max(0, elapsed / duration))
-    }
-
-    func percentString(at date: Date) -> String {
-        let percent = progress(at: date) * 100
-        return String(format: "%.\(decimalPlaces)f%%", percent)
-    }
-
-    func unitPositionString(at date: Date) -> String {
-        switch self {
-        case .lifetime:
-            return "1/1"
-        case .year:
-            let total = 80
-            return formatUnitPosition(currentCalendarYearNumber(at: date, total: total), total: total)
-        case .month:
-            let total = 80 * 12
-            return formatUnitPosition(currentCalendarMonthNumber(at: date, total: total), total: total)
-        case .week:
-            return currentDurationUnitString(at: date, unitDuration: 7 * 24 * 60 * 60)
-        case .day:
-            return currentDurationUnitString(at: date, unitDuration: 24 * 60 * 60)
-        case .hour:
-            return currentDurationUnitString(at: date, unitDuration: 60 * 60)
-        }
-    }
-
-    private func formatUnitPosition(_ current: Int, total: Int) -> String {
-        let currentText = Self.unitPositionFormatter.string(from: NSNumber(value: current)) ?? String(current)
-        let totalText = Self.unitPositionFormatter.string(from: NSNumber(value: total)) ?? String(total)
-        return "\(currentText)/\(totalText)"
-    }
-
-    func label(for date: Date) -> String {
-        let calendar = Self.calendar
-
-        switch self {
-        case .hour:
-            let hour = calendar.component(.hour, from: date)
-            let suffix = hour < 12 ? "AM" : "PM"
-            let hour12 = hour % 12 == 0 ? 12 : hour % 12
-            return "\(hour12) \(suffix)"
-        case .day:
-            return "\(monthName(for: date)) \(calendar.component(.day, from: date))"
-        case .week:
-            return "\(monthName(for: date)) week \(monthWeek(for: date))"
-        case .month:
-            return monthName(for: date)
-        case .year:
-            return String(calendar.component(.year, from: date))
-        case .lifetime:
-            return "Life"
-        }
-    }
-
-    func grid(containing date: Date) -> SegmentGrid {
-        switch self {
-        case .hour:
-            return SegmentGrid(rows: 10, cols: 6, segments: 60)
-        case .day:
-            return SegmentGrid(rows: 6, cols: 4, segments: 24)
-        case .week:
-            return SegmentGrid(rows: 14, cols: 12, segments: 168)
-        case .month:
-            return monthGrid(dayCount: daysInMonth(date))
-        case .year:
-            return SegmentGrid(rows: 4, cols: 3, segments: 12)
-        case .lifetime:
-            return SegmentGrid(rows: 10, cols: 8, segments: 80)
-        }
-    }
-
-    func segment(at date: Date, totalSegments: Int) -> SegmentProgress {
-        switch self {
-        case .month:
-            return monthSegment(at: date)
-        case .year:
-            return yearSegment(at: date)
-        case .lifetime:
-            return lifetimeSegment(at: date)
-        case .hour, .day, .week:
-            let interval = range(containing: date)
-            return uniformSegment(
-                at: date,
-                start: interval.start,
-                end: interval.end,
-                totalSegments: totalSegments
-            )
-        }
-    }
-
-    func cellFillRange(for index: Int, segment: SegmentProgress) -> CellFillRange {
-        if self == .lifetime && index == 0 {
-            let startProgress = yearProgress(at: lifetimeStart)
-            let end = index < segment.index ? 1 : segment.progress
-
-            return CellFillRange(
-                start: startProgress,
-                end: max(startProgress, end),
-                showMarker: index == segment.index
-            )
-        }
-
-        if index < segment.index {
-            return CellFillRange(start: 0, end: 1, showMarker: false)
-        }
-
-        if index == segment.index {
-            return CellFillRange(start: 0, end: segment.progress, showMarker: true)
-        }
-
-        return CellFillRange(start: 0, end: 0, showMarker: false)
-    }
-
-    func gridLabelLines(for index: Int, at date: Date) -> [String] {
-        if self == .week {
-            return [weekdayLabel(for: index), hourLabel(for: index % 24)]
-        }
-
-        return [gridLabel(for: index, at: date)]
-    }
-
-    private func range(containing date: Date) -> DateInterval {
-        let calendar = Self.calendar
-
-        switch self {
-        case .hour:
-            return calendar.dateInterval(of: .hour, for: date)!
-        case .day:
-            return calendar.dateInterval(of: .day, for: date)!
-        case .week:
-            let startOfDay = calendar.startOfDay(for: date)
-            let weekday = calendar.component(.weekday, from: startOfDay)
-            let daysFromSunday = weekday - 1
-            let start = calendar.date(byAdding: .day, value: -daysFromSunday, to: startOfDay)!
-            let end = calendar.date(byAdding: .day, value: 7, to: start)!
-            return DateInterval(start: start, end: end)
-        case .month:
-            return calendar.dateInterval(of: .month, for: date)!
-        case .year:
-            return calendar.dateInterval(of: .year, for: date)!
-        case .lifetime:
-            let end = calendar.date(byAdding: .year, value: 80, to: lifetimeStart)!
-            return DateInterval(start: lifetimeStart, end: end)
-        }
-    }
-
-    private func monthName(for date: Date) -> String {
-        let index = Self.calendar.component(.month, from: date) - 1
-        return [
-            "January",
-            "February",
-            "March",
-            "April",
-            "May",
-            "June",
-            "July",
-            "August",
-            "September",
-            "October",
-            "November",
-            "December"
-        ][index]
-    }
-
-    private func gridLabel(for index: Int, at date: Date) -> String {
-        switch self {
-        case .hour:
-            return String(format: "%02d", index)
-        case .day:
-            return hourLabel(for: index)
-        case .week:
-            return String(index + 1)
-        case .month:
-            return "\(monthName(for: date)) \(index + 1)"
-        case .year:
-            let year = Self.calendar.component(.year, from: date)
-            let labelDate = Self.calendar.date(
-                from: DateComponents(year: year, month: index + 1, day: 1)
-            )!
-            return monthName(for: labelDate)
-        case .lifetime:
-            return String(Self.calendar.component(.year, from: lifetimeStart) + index)
-        }
-    }
-
-    private func hourLabel(for hour: Int) -> String {
-        let suffix = hour < 12 ? "a" : "p"
-        let hour12 = hour % 12 == 0 ? 12 : hour % 12
-        return "\(hour12)\(suffix)"
-    }
-
-    private func weekdayLabel(for hourIndex: Int) -> String {
-        ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][hourIndex / 24]
-    }
-
-    private func monthWeek(for date: Date) -> Int {
-        let day = Self.calendar.component(.day, from: date)
-        let monthStart = Self.calendar.dateInterval(of: .month, for: date)!.start
-        let firstWeekdayOffset = Self.calendar.component(.weekday, from: monthStart) - 1
-        return ((firstWeekdayOffset + day - 1) / 7) + 1
-    }
-
-    private func monthGrid(dayCount: Int) -> SegmentGrid {
-        switch dayCount {
-        case 28:
-            return SegmentGrid(rows: 7, cols: 4, segments: dayCount)
-        case 29, 30:
-            return SegmentGrid(rows: 6, cols: 5, segments: dayCount)
-        default:
-            return SegmentGrid(rows: 8, cols: 4, segments: dayCount)
-        }
-    }
-
-    private func daysInMonth(_ date: Date) -> Int {
-        let calendar = Self.calendar
-        let interval = calendar.dateInterval(of: .month, for: date)!
-        return calendar.dateComponents([.day], from: interval.start, to: interval.end).day!
-    }
-
-    private func uniformSegment(
-        at date: Date,
-        start: Date,
-        end: Date,
-        totalSegments: Int
-    ) -> SegmentProgress {
-        let totalDuration = end.timeIntervalSince(start)
-        guard totalDuration > 0 else {
-            return SegmentProgress(index: 0, progress: 0)
-        }
-
-        let elapsed = min(totalDuration, max(0, date.timeIntervalSince(start)))
-        let segmentDuration = totalDuration / Double(totalSegments)
-        let rawIndex = Int(floor(elapsed / segmentDuration))
-        let index = min(totalSegments - 1, rawIndex)
-        let segmentStart = segmentDuration * Double(index)
-        let progress = elapsed >= totalDuration ? 1 : (elapsed - segmentStart) / segmentDuration
-
-        return SegmentProgress(index: index, progress: min(1, max(0, progress)))
-    }
-
-    private func monthSegment(at date: Date) -> SegmentProgress {
-        let calendar = Self.calendar
-        let totalSegments = daysInMonth(date)
-        let index = min(totalSegments - 1, max(0, calendar.component(.day, from: date) - 1))
-        let interval = calendar.dateInterval(of: .day, for: date)!
-
-        return SegmentProgress(
-            index: index,
-            progress: min(1, max(0, date.timeIntervalSince(interval.start) / interval.duration))
-        )
-    }
-
-    private func yearSegment(at date: Date) -> SegmentProgress {
-        let calendar = Self.calendar
-        let index = calendar.component(.month, from: date) - 1
-        let interval = calendar.dateInterval(of: .month, for: date)!
-
-        return SegmentProgress(
-            index: index,
-            progress: min(1, max(0, date.timeIntervalSince(interval.start) / interval.duration))
-        )
-    }
-
-    private func lifetimeSegment(at date: Date) -> SegmentProgress {
-        let calendar = Self.calendar
-        let totalSegments = 80
-        let end = calendar.date(byAdding: .year, value: totalSegments, to: lifetimeStart)!
-        let index = min(
-            totalSegments - 1,
-            max(0, calendar.component(.year, from: date) - calendar.component(.year, from: lifetimeStart))
-        )
-        let progress = date >= end ? 1 : yearProgress(at: date)
-
-        return SegmentProgress(index: index, progress: progress)
-    }
-
-    private func yearProgress(at date: Date) -> Double {
-        let calendar = Self.calendar
-        let interval = calendar.dateInterval(of: .year, for: date)!
-
-        return min(1, max(0, date.timeIntervalSince(interval.start) / interval.duration))
-    }
-
-    private func currentCalendarYearNumber(at date: Date, total: Int) -> Int {
-        let calendar = Self.calendar
-        let end = calendar.date(byAdding: .year, value: total, to: lifetimeStart)!
-        guard date < end else { return total }
-
-        var elapsedYears = calendar.component(.year, from: date) -
-            calendar.component(.year, from: lifetimeStart)
-        let anniversary = calendar.date(byAdding: .year, value: elapsedYears, to: lifetimeStart)!
-        if date < anniversary {
-            elapsedYears -= 1
-        }
-
-        return min(total, max(1, elapsedYears + 1))
-    }
-
-    private func currentCalendarMonthNumber(at date: Date, total: Int) -> Int {
-        let calendar = Self.calendar
-        let end = calendar.date(byAdding: .year, value: 80, to: lifetimeStart)!
-        guard date < end else { return total }
-
-        var elapsedMonths = (calendar.component(.year, from: date) -
-            calendar.component(.year, from: lifetimeStart)) * 12 +
-            (calendar.component(.month, from: date) -
-                calendar.component(.month, from: lifetimeStart))
-        let monthiversary = calendar.date(byAdding: .month, value: elapsedMonths, to: lifetimeStart)!
-        if date < monthiversary {
-            elapsedMonths -= 1
-        }
-
-        return min(total, max(1, elapsedMonths + 1))
-    }
-
-    private func currentDurationUnitString(at date: Date, unitDuration: TimeInterval) -> String {
-        let calendar = Self.calendar
-        let end = calendar.date(byAdding: .year, value: 80, to: lifetimeStart)!
-        let duration = calendarTime(for: end).timeIntervalSince(calendarTime(for: lifetimeStart))
-        let elapsed = min(
-            duration,
-            max(0, calendarTime(for: date).timeIntervalSince(calendarTime(for: lifetimeStart)))
-        )
-        let total = Int(ceil(duration / unitDuration))
-        let current = elapsed >= duration ? total : Int(floor(elapsed / unitDuration)) + 1
-
-        return formatUnitPosition(min(total, max(1, current)), total: total)
-    }
-
-    private func calendarTime(for date: Date) -> Date {
-        let calendar = Self.calendar
-        let components = calendar.dateComponents(
-            [.year, .month, .day, .hour, .minute, .second, .nanosecond],
-            from: date
-        )
-        var utcCalendar = Calendar(identifier: .gregorian)
-        utcCalendar.timeZone = TimeZone(secondsFromGMT: 0)!
-        return utcCalendar.date(from: components)!
     }
 }
 

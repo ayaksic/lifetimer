@@ -4,11 +4,12 @@
 //
 
 import SwiftUI
+import LifeTimerCore
 import WidgetKit
 
 struct LifeTimerEntry: TimelineEntry {
     let date: Date
-    let period: LifePeriod
+    let period: ComplicationPeriod
     let periodStart: Date
     let periodEnd: Date
 
@@ -31,7 +32,7 @@ struct LifeTimerEntry: TimelineEntry {
 }
 
 struct LifeTimerProvider: TimelineProvider {
-    let period: LifePeriod
+    let period: ComplicationPeriod
 
     func placeholder(in context: Context) -> LifeTimerEntry {
         entry(for: .now)
@@ -85,14 +86,14 @@ struct LifeTimerCombinedProvider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<LifeTimerCombinedEntry>) -> Void) {
         let now = Date()
-        let horizon = LifePeriod.hour.timelineHorizon(after: now)
+        let horizon = ComplicationPeriod.hour.timelineHorizon(after: now)
 
         var entries = [entry(for: now)]
-        var updateDate = LifePeriod.hour.nextTimelineUpdate(after: now)
+        var updateDate = ComplicationPeriod.hour.nextTimelineUpdate(after: now)
 
-        while updateDate <= horizon && entries.count < LifePeriod.hour.maximumTimelineEntries {
+        while updateDate <= horizon && entries.count < ComplicationPeriod.hour.maximumTimelineEntries {
             entries.append(entry(for: updateDate))
-            updateDate = LifePeriod.hour.nextTimelineUpdate(after: updateDate)
+            updateDate = ComplicationPeriod.hour.nextTimelineUpdate(after: updateDate)
         }
 
         completion(Timeline(entries: entries, policy: .atEnd))
@@ -106,7 +107,7 @@ struct LifeTimerCombinedProvider: TimelineProvider {
         )
     }
 
-    private func entry(for period: LifePeriod, at date: Date) -> LifeTimerEntry {
+    private func entry(for period: ComplicationPeriod, at date: Date) -> LifeTimerEntry {
         let interval = period.range(containing: date)
         return LifeTimerEntry(
             date: date,
@@ -234,13 +235,13 @@ private struct LifeTimerCombinedProgressColumn: View {
 }
 
 struct LifeTimerComplication: Widget {
-    let period: LifePeriod
+    let period: ComplicationPeriod
 
     init() {
         self.period = .day
     }
 
-    init(period: LifePeriod) {
+    init(period: ComplicationPeriod) {
         self.period = period
     }
 
@@ -264,7 +265,7 @@ struct LifeTimerCombinedComplication: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "LifeTimerCombinedComplication", provider: LifeTimerCombinedProvider()) { entry in
             LifeTimerCombinedComplicationView(entry: entry)
-                .widgetURL(LifePeriod.hour.deepLinkURL)
+                .widgetURL(ComplicationPeriod.hour.deepLinkURL)
         }
         .configurationDisplayName("Life Timer Duo")
         .description("Shows current-hour and current-day progress side by side.")
@@ -283,19 +284,20 @@ struct LifeTimerComplicationBundle: WidgetBundle {
     }
 }
 
-enum LifePeriod {
+enum ComplicationPeriod {
     case hour
     case day
 
-    static var calendar: Calendar {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.firstWeekday = 1
-        calendar.timeZone = .current
-        return calendar
+    private var corePeriod: LifePeriod {
+        switch self {
+        case .hour: .hour
+        case .day: .day
+        }
     }
 
     func range(containing date: Date) -> DateInterval {
-        Self.calendar.dateInterval(of: calendarComponent, for: date)!
+        let settings = LifeTimerSettingsRepository.shared.current()
+        return corePeriod.range(containing: date, lifetimeStart: settings.lifetimeStart)
     }
 
     func nextTimelineUpdate(after date: Date) -> Date {
@@ -312,15 +314,6 @@ enum LifePeriod {
         }
 
         return date.addingTimeInterval(timelineCadence)
-    }
-
-    var calendarComponent: Calendar.Component {
-        switch self {
-        case .hour:
-            return .hour
-        case .day:
-            return .day
-        }
     }
 
     var complicationLabel: String {
