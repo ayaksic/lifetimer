@@ -89,7 +89,10 @@
       containers: [
         {
           containerIdentifier: config.containerIdentifier,
-          apiToken: config.apiToken,
+          apiTokenAuth: {
+            apiToken: config.apiToken,
+            persist: true,
+          },
           environment: config.environment || "production",
         },
       ],
