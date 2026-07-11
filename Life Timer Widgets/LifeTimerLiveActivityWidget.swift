@@ -1,4 +1,5 @@
 import ActivityKit
+import LifeTimerCore
 import SwiftUI
 import WidgetKit
 

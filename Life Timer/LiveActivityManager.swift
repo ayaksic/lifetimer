@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import LifeTimerCore
 
 #if canImport(ActivityKit) && os(iOS)
 import ActivityKit

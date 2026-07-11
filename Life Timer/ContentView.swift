@@ -6,14 +6,13 @@
 //
 
 import AVFoundation
+import LifeTimerCore
 import SwiftUI
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
 
-    @AppStorage("lifeTimerLifetimeStart") private var lifetimeStartValue = defaultLifetimeStart.timeIntervalSinceReferenceDate
-    @AppStorage("lifeTimerUnitPositionEnabled") private var unitPositionEnabled = false
-
+    @State private var settings = LifeTimerSettingsRepository.shared.current()
     @State private var pageIndex = 0
     @State private var showingLifetimeEditor = false
     @State private var liveActivityIsRunning = false
@@ -23,7 +22,11 @@ struct ContentView: View {
     private let pages = TimerPage.all
 
     private var lifetimeStart: Date {
-        Date(timeIntervalSinceReferenceDate: lifetimeStartValue)
+        settings.lifetimeStart
+    }
+
+    private var unitPositionEnabled: Bool {
+        settings.unitPositionEnabled
     }
 
     var body: some View {
@@ -68,11 +71,11 @@ struct ContentView: View {
             LifetimeEditor(
                 lifetimeStart: lifetimeStart,
                 resetAction: {
-                    lifetimeStartValue = defaultLifetimeStart.timeIntervalSinceReferenceDate
+                    settings = LifeTimerSettingsRepository.shared.update(lifetimeStart: defaultLifetimeStart)
                     showingLifetimeEditor = false
                 },
                 saveAction: { nextStart in
-                    lifetimeStartValue = nextStart.timeIntervalSinceReferenceDate
+                    settings = LifeTimerSettingsRepository.shared.update(lifetimeStart: nextStart)
                     showingLifetimeEditor = false
                 }
             )
@@ -80,12 +83,20 @@ struct ContentView: View {
             .presentationDragIndicator(.visible)
         }
         .task {
+            LifeTimerSettingsRepository.shared.start()
+            settings = LifeTimerSettingsRepository.shared.current()
             await monitorLiveActivity()
+        }
+        .onReceive(
+            NotificationCenter.default.publisher(for: LifeTimerSettingsRepository.didChangeNotification)
+        ) { _ in
+            settings = LifeTimerSettingsRepository.shared.current()
         }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
 
             Task {
+                await LifeTimerSettingsRepository.shared.refreshFromCloud()
                 let status = await LifeTimerLiveActivityManager.refresh()
                 applyLiveActivityStatus(status)
             }
@@ -124,7 +135,9 @@ struct ContentView: View {
         let page = pages[pageIndex]
 
         if page.period == .hour && page.style == .flow {
-            unitPositionEnabled.toggle()
+            settings = LifeTimerSettingsRepository.shared.update(
+                unitPositionEnabled: !settings.unitPositionEnabled
+            )
         } else if page.period == .lifetime {
             showingLifetimeEditor = true
         }
