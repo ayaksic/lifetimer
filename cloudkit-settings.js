@@ -15,14 +15,29 @@
   function decode(record) {
     const lifetimeStart = field(record, "lifetimeStart");
     const updatedAt = field(record, "updatedAt");
-    if (!lifetimeStart || !updatedAt) return null;
+    if (lifetimeStart == null || updatedAt == null) return null;
+
+    const lifetimeStartDate = new Date(lifetimeStart);
+    const updatedAtDate = new Date(updatedAt);
+    if (!Number.isFinite(lifetimeStartDate.getTime()) || !Number.isFinite(updatedAtDate.getTime())) {
+      throw new TypeError("CloudKit returned an invalid Life Timer timestamp");
+    }
 
     return {
       schemaVersion: Number(field(record, "schemaVersion") || 1),
-      lifetimeStart: new Date(lifetimeStart),
+      lifetimeStart: lifetimeStartDate,
       unitPositionEnabled: Boolean(field(record, "unitPositionEnabled")),
-      updatedAt: new Date(updatedAt),
+      updatedAt: updatedAtDate,
     };
+  }
+
+  function timestamp(value, fieldName) {
+    const date = value instanceof Date ? value : new Date(value);
+    const milliseconds = date.getTime();
+    if (!Number.isFinite(milliseconds)) {
+      throw new TypeError(`${fieldName} must be a valid date`);
+    }
+    return milliseconds;
   }
 
   function encode(settings) {
@@ -31,9 +46,9 @@
       recordType,
       fields: {
         schemaVersion: { value: settings.schemaVersion || 1 },
-        lifetimeStart: { value: settings.lifetimeStart },
+        lifetimeStart: { value: timestamp(settings.lifetimeStart, "lifetimeStart") },
         unitPositionEnabled: { value: settings.unitPositionEnabled ? 1 : 0 },
-        updatedAt: { value: settings.updatedAt },
+        updatedAt: { value: timestamp(settings.updatedAt, "updatedAt") },
       },
     };
     if (fetchedRecord && fetchedRecord.recordChangeTag) {
@@ -103,19 +118,25 @@
     const identity = await container.setUpAuth();
     if (!identity) {
       callbacks.setStatus("sign-in");
-      container.whenUserSignsIn().then(reconcile).catch(() => callbacks.setStatus("offline"));
+      container.whenUserSignsIn().then(reconcile).catch(reportFailure);
       return;
     }
 
     await reconcile();
   }
 
+  function reportFailure(error) {
+    const status = root.navigator && root.navigator.onLine === false ? "offline" : "error";
+    const detail = error && (error.reason || error.message || error.serverErrorCode || error.ckErrorCode);
+    callbacks.setStatus(status, detail || "CloudKit request failed");
+  }
+
   root.LifeTimerCloudSync = {
     start(nextCallbacks) {
-      start(nextCallbacks).catch(() => nextCallbacks.setStatus("offline"));
+      return start(nextCallbacks).catch(reportFailure);
     },
     save(settings) {
-      save(settings).catch(() => callbacks && callbacks.setStatus("offline"));
+      return save(settings).catch(reportFailure);
     },
   };
 })(window);

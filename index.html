@@ -507,15 +507,17 @@
         } catch (error) {}
       }
 
-      function setCloudSyncStatus(status) {
+      function setCloudSyncStatus(status, detail) {
         const labels = {
           local: "On device",
           syncing: "iCloud…",
           synced: "iCloud synced",
           "sign-in": "Sign in to iCloud",
           offline: "iCloud offline",
+          error: "iCloud error",
         };
         cloudSyncStatus.textContent = labels[status] || status;
+        cloudSyncStatus.title = detail || "";
       }
 
       function setLifetimeStart(date) {
