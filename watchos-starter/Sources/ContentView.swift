@@ -1,4 +1,5 @@
 import SwiftUI
+import LifeTimerCore
 
 struct ContentView: View {
     private let pages = TimerPage.all

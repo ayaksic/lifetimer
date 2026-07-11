@@ -252,6 +252,23 @@
         background: var(--ink);
         color: var(--remaining);
       }
+
+      .sync-panel {
+        position: fixed;
+        z-index: 5;
+        right: max(8px, env(safe-area-inset-right));
+        bottom: max(8px, env(safe-area-inset-bottom));
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: rgba(22, 19, 18, 0.58);
+        font: 700 10px ui-sans-serif, system-ui, sans-serif;
+      }
+
+      #apple-sign-in-button,
+      #apple-sign-out-button {
+        min-height: 22px;
+      }
     </style>
   </head>
   <body>
@@ -265,6 +282,11 @@
         <span class="unit-position" id="unit-position" hidden>1/1</span>
       </div>
     </main>
+    <aside class="sync-panel" aria-live="polite">
+      <span id="cloud-sync-status">On device</span>
+      <div id="apple-sign-in-button"></div>
+      <div id="apple-sign-out-button"></div>
+    </aside>
     <form
       class="lifetime-editor"
       id="lifetime-editor"
@@ -302,6 +324,10 @@
       </div>
     </form>
 
+    <script src="life-timer-core.js"></script>
+    <script src="https://cdn.apple-cloudkit.com/ck/2/CloudKit.js"></script>
+    <script src="cloudkit-config.js"></script>
+    <script src="cloudkit-settings.js"></script>
     <script>
       const canvas = document.getElementById("progress");
       const context = canvas.getContext("2d", { alpha: false });
@@ -314,6 +340,11 @@
       const lifetimeEditor = document.getElementById("lifetime-editor");
       const lifetimeDateInput = document.getElementById("lifetime-start-date");
       const lifetimeTimeInput = document.getElementById("lifetime-start-time");
+      const cloudSyncStatus = document.getElementById("cloud-sync-status");
+      const syncPanel = document.querySelector(".sync-panel");
+      for (const eventName of ["pointerdown", "pointerup", "click", "touchstart", "touchend"]) {
+        syncPanel.addEventListener(eventName, (event) => event.stopPropagation());
+      }
       const colors = {
         elapsed: "#b66a5f",
         remaining: "#fbf8f3",
@@ -325,103 +356,24 @@
       const defaultLifetimeStart = new Date(1985, 3, 17, 3, 41, 0, 0);
       const lifetimeStartStorageKey = "lifeTimerLifetimeStart";
       const unitPositionStorageKey = "lifeTimerUnitPositionEnabled";
-      const unitPositionNumberFormatter = new Intl.NumberFormat("en-US");
-      const lifeUnitDurations = {
-        week: 7 * 24 * 60 * 60 * 1000,
-        day: 24 * 60 * 60 * 1000,
-        hour: 60 * 60 * 1000,
-      };
+      const settingsUpdatedAtStorageKey = "lifeTimerSettingsUpdatedAt";
       let lifetimeStart = readLifetimeStart();
       let unitPositionEnabled = readUnitPositionEnabled();
+      let settingsUpdatedAt = readSettingsUpdatedAt();
 
       const pageDefinitions = [
-        {
-          label: "Hour",
-          period: "hour",
-          decimalPlaces: 4,
-          range(now) {
-            return {
-              start: new Date(
-                now.getFullYear(),
-                now.getMonth(),
-                now.getDate(),
-                now.getHours(),
-              ),
-              end: new Date(
-                now.getFullYear(),
-                now.getMonth(),
-                now.getDate(),
-                now.getHours() + 1,
-              ),
-            };
-          },
-        },
-        {
-          label: "Today",
-          period: "day",
-          decimalPlaces: 5,
-          range(now) {
-            return {
-              start: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
-              end: new Date(
-                now.getFullYear(),
-                now.getMonth(),
-                now.getDate() + 1,
-              ),
-            };
-          },
-        },
-        {
-          label: "This Week",
-          period: "week",
-          decimalPlaces: 6,
-          range(now) {
-            const start = new Date(
-              now.getFullYear(),
-              now.getMonth(),
-              now.getDate() - now.getDay(),
-            );
-            return {
-              start,
-              end: new Date(
-                start.getFullYear(),
-                start.getMonth(),
-                start.getDate() + 7,
-              ),
-            };
-          },
-        },
-        {
-          label: "This Month",
-          period: "month",
-          decimalPlaces: 7,
-          range(now) {
-            return {
-              start: new Date(now.getFullYear(), now.getMonth(), 1),
-              end: new Date(now.getFullYear(), now.getMonth() + 1, 1),
-            };
-          },
-        },
-        {
-          label: "This Year",
-          period: "year",
-          decimalPlaces: 8,
-          range(now) {
-            return {
-              start: new Date(now.getFullYear(), 0, 1),
-              end: new Date(now.getFullYear() + 1, 0, 1),
-            };
-          },
-        },
-        {
-          label: "Lifetime",
-          period: "lifetime",
-          decimalPlaces: 9,
-          range() {
-            return getLifetimeRange();
-          },
-        },
+        { label: "Hour", period: "hour", decimalPlaces: 4 },
+        { label: "Today", period: "day", decimalPlaces: 5 },
+        { label: "This Week", period: "week", decimalPlaces: 6 },
+        { label: "This Month", period: "month", decimalPlaces: 7 },
+        { label: "This Year", period: "year", decimalPlaces: 8 },
+        { label: "Lifetime", period: "lifetime", decimalPlaces: 9 },
       ];
+
+      for (const definition of pageDefinitions) {
+        definition.range = (now) =>
+          LifeTimerWebCore.range(definition.period, now, lifetimeStart);
+      }
 
       const segmentGrids = {
         hour: { rows: 10, cols: 6, segments: 60 },
@@ -488,25 +440,6 @@
         );
       }
 
-      function addMonths(date, months) {
-        return new Date(
-          date.getFullYear(),
-          date.getMonth() + months,
-          date.getDate(),
-          date.getHours(),
-          date.getMinutes(),
-          date.getSeconds(),
-          date.getMilliseconds(),
-        );
-      }
-
-      function getLifetimeRange() {
-        return {
-          start: cloneDate(lifetimeStart),
-          end: addYears(lifetimeStart, 80),
-        };
-      }
-
       function readLifetimeStart() {
         try {
           const storedValue = window.localStorage.getItem(
@@ -531,6 +464,60 @@
         }
       }
 
+      function readSettingsUpdatedAt() {
+        try {
+          const value = window.localStorage.getItem(settingsUpdatedAtStorageKey);
+          const date = value ? new Date(value) : null;
+          if (date && !Number.isNaN(date.getTime())) return date;
+          if (
+            window.localStorage.getItem(lifetimeStartStorageKey) !== null ||
+            window.localStorage.getItem(unitPositionStorageKey) !== null
+          ) {
+            return new Date();
+          }
+        } catch (error) {}
+        return new Date(0);
+      }
+
+      function markSettingsUpdated() {
+        settingsUpdatedAt = new Date();
+        try {
+          window.localStorage.setItem(settingsUpdatedAtStorageKey, settingsUpdatedAt.toISOString());
+        } catch (error) {}
+        LifeTimerCloudSync.save(getLocalSettings());
+      }
+
+      function getLocalSettings() {
+        return {
+          schemaVersion: 1,
+          lifetimeStart: cloneDate(lifetimeStart),
+          unitPositionEnabled,
+          updatedAt: new Date(settingsUpdatedAt),
+        };
+      }
+
+      function applyRemoteSettings(settings) {
+        lifetimeStart = cloneDate(settings.lifetimeStart);
+        unitPositionEnabled = settings.unitPositionEnabled;
+        settingsUpdatedAt = new Date(settings.updatedAt);
+        try {
+          window.localStorage.setItem(lifetimeStartStorageKey, formatDateTimeLocal(lifetimeStart));
+          window.localStorage.setItem(unitPositionStorageKey, unitPositionEnabled ? "true" : "false");
+          window.localStorage.setItem(settingsUpdatedAtStorageKey, settingsUpdatedAt.toISOString());
+        } catch (error) {}
+      }
+
+      function setCloudSyncStatus(status) {
+        const labels = {
+          local: "On device",
+          syncing: "iCloud…",
+          synced: "iCloud synced",
+          "sign-in": "Sign in to iCloud",
+          offline: "iCloud offline",
+        };
+        cloudSyncStatus.textContent = labels[status] || status;
+      }
+
       function setLifetimeStart(date) {
         lifetimeStart = cloneDate(date);
 
@@ -540,6 +527,7 @@
             formatDateTimeLocal(lifetimeStart),
           );
         } catch (error) {}
+        markSettingsUpdated();
       }
 
       function resetLifetimeStart() {
@@ -548,6 +536,7 @@
         try {
           window.localStorage.removeItem(lifetimeStartStorageKey);
         } catch (error) {}
+        markSettingsUpdated();
       }
 
       function formatDateTimeLocal(date) {
@@ -605,6 +594,7 @@
             isEnabled ? "true" : "false",
           );
         } catch (error) {}
+        markSettingsUpdated();
       }
 
       function toggleUnitPosition() {
@@ -612,96 +602,11 @@
       }
 
       function getUnitPositionLabel(page, now) {
-        if (page.period === "lifetime") return "1/1";
-
-        if (page.period === "year") {
-          const total = 80;
-          return formatUnitPosition(
-            getCurrentCalendarYearNumber(now, total),
-            total,
-          );
-        }
-
-        if (page.period === "month") {
-          const total = 80 * 12;
-          return formatUnitPosition(
-            getCurrentCalendarMonthNumber(now, total),
-            total,
-          );
-        }
-
-        if (page.period === "week") {
-          return getCurrentDurationUnitLabel(now, lifeUnitDurations.week);
-        }
-
-        if (page.period === "day") {
-          return getCurrentDurationUnitLabel(now, lifeUnitDurations.day);
-        }
-
-        return getCurrentDurationUnitLabel(now, lifeUnitDurations.hour);
-      }
-
-      function formatUnitPosition(current, total) {
-        return `${unitPositionNumberFormatter.format(
-          current,
-        )}/${unitPositionNumberFormatter.format(total)}`;
-      }
-
-      function getCurrentCalendarYearNumber(now, total) {
-        const end = addYears(lifetimeStart, total);
-        if (now >= end) return total;
-
-        let elapsedYears = now.getFullYear() - lifetimeStart.getFullYear();
-        if (now < addYears(lifetimeStart, elapsedYears)) elapsedYears -= 1;
-
-        return clamp(elapsedYears + 1, 1, total);
-      }
-
-      function getCurrentCalendarMonthNumber(now, total) {
-        const end = addYears(lifetimeStart, 80);
-        if (now >= end) return total;
-
-        let elapsedMonths =
-          (now.getFullYear() - lifetimeStart.getFullYear()) * 12 +
-          (now.getMonth() - lifetimeStart.getMonth());
-        if (now < addMonths(lifetimeStart, elapsedMonths)) elapsedMonths -= 1;
-
-        return clamp(elapsedMonths + 1, 1, total);
-      }
-
-      function getCurrentDurationUnitLabel(now, unitDuration) {
-        const duration =
-          getCalendarTime(addYears(lifetimeStart, 80)) -
-          getCalendarTime(lifetimeStart);
-        const elapsed = clamp(
-          getCalendarTime(now) - getCalendarTime(lifetimeStart),
-          0,
-          duration,
-        );
-        const total = Math.ceil(duration / unitDuration);
-        const current =
-          elapsed >= duration
-            ? total
-            : Math.floor(elapsed / unitDuration) + 1;
-
-        return formatUnitPosition(clamp(current, 1, total), total);
-      }
-
-      function getCalendarTime(date) {
-        return Date.UTC(
-          date.getFullYear(),
-          date.getMonth(),
-          date.getDate(),
-          date.getHours(),
-          date.getMinutes(),
-          date.getSeconds(),
-          date.getMilliseconds(),
-        );
+        return LifeTimerWebCore.unitPositionLabel(page.period, now, lifetimeStart);
       }
 
       function getProgress(now) {
-        const { start, end } = periods[activePeriod].range(now);
-        return clamp((now - start) / (end - start), 0, 1);
+        return LifeTimerWebCore.progress(periods[activePeriod].period, now, lifetimeStart);
       }
 
       function draw(page, now, progress) {
@@ -1440,6 +1345,11 @@
       });
 
       resizeCanvas();
+      LifeTimerCloudSync.start({
+        getLocalSettings,
+        applyRemoteSettings,
+        setStatus: setCloudSyncStatus,
+      });
       render();
     </script>
   </body>

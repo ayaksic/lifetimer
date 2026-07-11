@@ -65,7 +65,7 @@ In the generated app target:
 1. Replace the generated app file with `Sources/LifeTimerApp.swift`.
 2. Replace `ContentView.swift` with `Sources/ContentView.swift`.
 3. Add `Sources/LiveActivityManager.swift`.
-4. Add `Shared/LifeTimerCore.swift` to the app target.
+4. Add this repository as a local Swift package and link the `LifeTimerCore` product to the app target.
 5. Add the repo's `hope.mp3` to the app target as a bundled resource if you want the double-tap sound.
 6. Replace the generated `Assets.xcassets` with `Assets.xcassets` from this starter, or drag `Assets.xcassets/AppIcon.appiconset` into your existing asset catalog.
 
@@ -79,15 +79,15 @@ The included app icon uses the same `icon-1024.png` artwork as the web/PWA versi
 4. Leave `Include Configuration Intent` unchecked.
 5. Delete the generated widget files, or remove their target membership. The starter widget file already provides the widget extension's one `@main` entry point.
 6. Add `Widgets/LifeTimerLiveActivityWidget.swift` to the widget extension target.
-7. Add `Shared/LifeTimerCore.swift` to the widget extension target too.
+7. Link the same `LifeTimerCore` package product to the widget extension target too.
 
-The shared file must be included in both targets because both the app and the widget extension need the exact same `LifeTimerHourAttributes` type.
+The package must be linked to both targets because both the app and widget extension use the exact same `LifeTimerHourAttributes` type.
 
 Target membership matters:
 
 - App target only: `LifeTimerApp.swift`, `ContentView.swift`, `LiveActivityManager.swift`, `hope.mp3`
 - Widget extension target only: `LifeTimerLiveActivityWidget.swift`
-- Both targets: `LifeTimerCore.swift`
+- Both targets: `LifeTimerCore` package product
 
 If Xcode reports that `@main` can only apply to one type in a module, one of the app files is accidentally included in the widget target or the widget file is accidentally included in the app target. Select the file, open the File Inspector, and fix the `Target Membership` checkboxes.
 

@@ -1,4 +1,5 @@
 import AVFoundation
+import LifeTimerCore
 import SwiftUI
 
 struct ContentView: View {

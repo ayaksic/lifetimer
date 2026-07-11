@@ -1,0 +1,38 @@
+[
+  {
+    "name": "hour midpoint",
+    "timeZone": "America/New_York",
+    "now": "2026-07-11T12:30:00-04:00",
+    "lifetimeStart": "1985-04-17T03:41:00-04:00",
+    "period": 0,
+    "progress": 0.5,
+    "unitPosition": "361,450/701,280"
+  },
+  {
+    "name": "day across daylight saving spring forward",
+    "timeZone": "America/New_York",
+    "now": "2026-03-08T12:00:00-04:00",
+    "lifetimeStart": "1985-04-17T03:41:00-05:00",
+    "period": 1,
+    "progress": 0.4782608695652174,
+    "unitPosition": "14,936/29,220"
+  },
+  {
+    "name": "leap day year",
+    "timeZone": "America/New_York",
+    "now": "2024-02-29T12:00:00-05:00",
+    "lifetimeStart": "1985-04-17T03:41:00-05:00",
+    "period": 4,
+    "progress": 0.16256830601092895,
+    "unitPosition": "39/80"
+  },
+  {
+    "name": "lifetime start",
+    "timeZone": "America/New_York",
+    "now": "1985-04-17T03:41:00-04:00",
+    "lifetimeStart": "1985-04-17T03:41:00-04:00",
+    "period": 5,
+    "progress": 0.0,
+    "unitPosition": "1/1"
+  }
+]

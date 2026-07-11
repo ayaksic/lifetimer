@@ -60,7 +60,7 @@ In the new Xcode project:
 2. Replace its contents with `Sources/LifeTimerWatchApp.swift`.
 3. Open `ContentView.swift`.
 4. Replace its contents with `Sources/ContentView.swift`.
-5. Add `Sources/LifeTimerCore.swift` to the watch app target.
+5. Add this repository as a local Swift package and link the `LifeTimerCore` product to the watch app target.
 
 ## Run it
 

@@ -1,46 +1,67 @@
+//
+//  LifeTimerCore.swift
+//  LifeTimerCore
+//
+//  Created by Andrew Yaksic on 5/5/26.
+//
+
 import Foundation
 
-let defaultLifetimeStart = LifePeriod.calendar.date(
+public let defaultLifetimeStart = LifePeriod.calendar.date(
     from: DateComponents(year: 1985, month: 4, day: 17, hour: 3, minute: 41)
 )!
 
-struct TimerPage: Identifiable, Equatable {
-    let period: LifePeriod
-    let style: TimerPageStyle
+public struct TimerPage: Identifiable, Equatable, Sendable {
+    public let period: LifePeriod
+    public let style: TimerPageStyle
 
-    var id: String {
+    public var id: String {
         "\(style.rawValue)-\(period.rawValue)"
     }
 
-    static let all: [TimerPage] = {
+    public static let all: [TimerPage] = {
         LifePeriod.allCases.map { TimerPage(period: $0, style: .flow) }
             + LifePeriod.allCases.map { TimerPage(period: $0, style: .grid) }
     }()
+
+    public static func deepLinkTarget(for url: URL) -> TimerPage? {
+        guard url.scheme == "lifetimer", url.host == "timer" else { return nil }
+        guard let periodName = url.pathComponents.dropFirst().first else { return nil }
+
+        let period: LifePeriod
+        switch periodName {
+        case "hour": period = .hour
+        case "day": period = .day
+        default: return nil
+        }
+
+        return TimerPage(period: period, style: .flow)
+    }
 }
 
-enum TimerPageStyle: String {
+public enum TimerPageStyle: String, Sendable {
     case flow
     case grid
 }
 
-struct SegmentGrid {
-    let rows: Int
-    let cols: Int
-    let segments: Int
+public struct SegmentGrid: Equatable, Sendable {
+    public let rows: Int
+    public let cols: Int
+    public let segments: Int
 }
 
-struct SegmentProgress {
-    let index: Int
-    let progress: Double
+public struct SegmentProgress: Equatable, Sendable {
+    public let index: Int
+    public let progress: Double
 }
 
-struct CellFillRange {
-    let start: Double
-    let end: Double
-    let showMarker: Bool
+public struct CellFillRange: Equatable, Sendable {
+    public let start: Double
+    public let end: Double
+    public let showMarker: Bool
 }
 
-enum LifePeriod: Int, CaseIterable, Identifiable {
+public enum LifePeriod: Int, CaseIterable, Identifiable, Codable, Sendable {
     case hour
     case day
     case week
@@ -48,16 +69,24 @@ enum LifePeriod: Int, CaseIterable, Identifiable {
     case year
     case lifetime
 
-    var id: Int { rawValue }
+    public var id: Int { rawValue }
 
-    static var calendar: Calendar {
+    public static var calendar: Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.firstWeekday = 1
         calendar.timeZone = .current
         return calendar
     }
 
-    var decimalPlaces: Int {
+    private static let unitPositionFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.locale = Locale(identifier: "en_US")
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        return formatter
+    }()
+
+    public var decimalPlaces: Int {
         switch self {
         case .hour:
             4
@@ -74,7 +103,7 @@ enum LifePeriod: Int, CaseIterable, Identifiable {
         }
     }
 
-    func progress(at date: Date, lifetimeStart: Date) -> Double {
+    public func progress(at date: Date, lifetimeStart: Date) -> Double {
         let interval = range(containing: date, lifetimeStart: lifetimeStart)
         let duration = interval.end.timeIntervalSince(interval.start)
         guard duration > 0 else { return 0 }
@@ -83,12 +112,12 @@ enum LifePeriod: Int, CaseIterable, Identifiable {
         return min(1, max(0, elapsed / duration))
     }
 
-    func percentString(at date: Date, lifetimeStart: Date) -> String {
+    public func percentString(at date: Date, lifetimeStart: Date) -> String {
         let percent = progress(at: date, lifetimeStart: lifetimeStart) * 100
         return String(format: "%.\(decimalPlaces)f%%", percent)
     }
 
-    func label(for date: Date) -> String {
+    public func label(for date: Date) -> String {
         let calendar = Self.calendar
 
         switch self {
@@ -110,7 +139,7 @@ enum LifePeriod: Int, CaseIterable, Identifiable {
         }
     }
 
-    func range(containing date: Date, lifetimeStart: Date) -> DateInterval {
+    public func range(containing date: Date, lifetimeStart: Date) -> DateInterval {
         let calendar = Self.calendar
 
         switch self {
@@ -134,7 +163,7 @@ enum LifePeriod: Int, CaseIterable, Identifiable {
         }
     }
 
-    func grid(containing date: Date) -> SegmentGrid {
+    public func grid(containing date: Date) -> SegmentGrid {
         switch self {
         case .hour:
             return SegmentGrid(rows: 10, cols: 6, segments: 60)
@@ -151,7 +180,7 @@ enum LifePeriod: Int, CaseIterable, Identifiable {
         }
     }
 
-    func segment(at date: Date, lifetimeStart: Date, totalSegments: Int) -> SegmentProgress {
+    public func segment(at date: Date, lifetimeStart: Date, totalSegments: Int) -> SegmentProgress {
         switch self {
         case .month:
             return monthSegment(at: date)
@@ -170,7 +199,7 @@ enum LifePeriod: Int, CaseIterable, Identifiable {
         }
     }
 
-    func cellFillRange(for index: Int, segment: SegmentProgress, lifetimeStart: Date) -> CellFillRange {
+    public func cellFillRange(for index: Int, segment: SegmentProgress, lifetimeStart: Date) -> CellFillRange {
         if self == .lifetime && index == 0 {
             let startProgress = yearProgress(at: lifetimeStart)
             let end = index < segment.index ? 1 : segment.progress
@@ -193,7 +222,7 @@ enum LifePeriod: Int, CaseIterable, Identifiable {
         return CellFillRange(start: 0, end: 0, showMarker: false)
     }
 
-    func gridLabelLines(for index: Int, at date: Date, lifetimeStart: Date) -> [String] {
+    public func gridLabelLines(for index: Int, at date: Date, lifetimeStart: Date) -> [String] {
         if self == .week {
             return [weekdayLabel(for: index), hourLabel(for: index % 24)]
         }
@@ -201,16 +230,22 @@ enum LifePeriod: Int, CaseIterable, Identifiable {
         return [gridLabel(for: index, at: date, lifetimeStart: lifetimeStart)]
     }
 
-    func unitPositionLabel(at date: Date, lifetimeStart: Date) -> String {
+    public func unitPositionLabel(at date: Date, lifetimeStart: Date) -> String {
         switch self {
         case .lifetime:
             return "1/1"
         case .year:
             let total = 80
-            return "\(currentCalendarYearNumber(at: date, lifetimeStart: lifetimeStart, total: total))/\(total)"
+            return formatUnitPosition(
+                currentCalendarYearNumber(at: date, lifetimeStart: lifetimeStart, total: total),
+                total: total
+            )
         case .month:
             let total = 80 * 12
-            return "\(currentCalendarMonthNumber(at: date, lifetimeStart: lifetimeStart, total: total))/\(total)"
+            return formatUnitPosition(
+                currentCalendarMonthNumber(at: date, lifetimeStart: lifetimeStart, total: total),
+                total: total
+            )
         case .week:
             return currentDurationUnitLabel(at: date, lifetimeStart: lifetimeStart, unitDuration: 7 * 24 * 60 * 60)
         case .day:
@@ -220,9 +255,14 @@ enum LifePeriod: Int, CaseIterable, Identifiable {
         }
     }
 
+    private func formatUnitPosition(_ current: Int, total: Int) -> String {
+        let currentText = Self.unitPositionFormatter.string(from: NSNumber(value: current)) ?? String(current)
+        let totalText = Self.unitPositionFormatter.string(from: NSNumber(value: total)) ?? String(total)
+        return "\(currentText)/\(totalText)"
+    }
+
     private func monthName(for date: Date) -> String {
-        let index = Self.calendar.component(.month, from: date) - 1
-        return Self.calendar.monthSymbols[index]
+        Self.monthNameFormatter.string(from: date)
     }
 
     private func monthWeek(for date: Date) -> Int {
@@ -376,7 +416,7 @@ enum LifePeriod: Int, CaseIterable, Identifiable {
         let total = Int(ceil(duration / unitDuration))
         let current = elapsed >= duration ? total : Int(floor(elapsed / unitDuration)) + 1
 
-        return "\(min(total, max(1, current)))/\(total)"
+        return formatUnitPosition(min(total, max(1, current)), total: total)
     }
 
     private func calendarTime(for date: Date) -> TimeInterval {
@@ -401,4 +441,37 @@ enum LifePeriod: Int, CaseIterable, Identifiable {
 
         return utcDate.timeIntervalSince1970
     }
+
+    private static let monthNameFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Self.calendar
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "MMMM"
+        return formatter
+    }()
 }
+
+#if canImport(ActivityKit) && os(iOS)
+import ActivityKit
+
+@available(iOS 16.2, *)
+public struct LifeTimerHourAttributes: ActivityAttributes {
+    public struct ContentState: Codable, Hashable {
+        public var generatedAt: Date
+        public var progress: Double
+
+        public init(generatedAt: Date, progress: Double) {
+            self.generatedAt = generatedAt
+            self.progress = progress
+        }
+    }
+
+    public let hourStart: Date
+    public let hourEnd: Date
+
+    public init(hourStart: Date, hourEnd: Date) {
+        self.hourStart = hourStart
+        self.hourEnd = hourEnd
+    }
+}
+#endif
