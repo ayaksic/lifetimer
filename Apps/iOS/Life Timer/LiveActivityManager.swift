@@ -133,9 +133,9 @@ enum LifeTimerLiveActivityManager {
             isRunning: false,
             isAvailable: ActivityAuthorizationInfo().areActivitiesEnabled
         )
-        #endif
-
+        #else
         return LifeTimerLiveActivityStatus(isRunning: false, isAvailable: false)
+        #endif
     }
 
     #if canImport(ActivityKit) && os(iOS)
