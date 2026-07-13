@@ -1,0 +1,895 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		4D0000010000000000000001 /* LifeTimerCore in Frameworks */ = {isa = PBXBuildFile; productRef = 4D0000010000000000000011 /* LifeTimerCore */; };
+		4D0000010000000000000002 /* LifeTimerCore in Frameworks */ = {isa = PBXBuildFile; productRef = 4D0000010000000000000011 /* LifeTimerCore */; };
+		49B36CA12FAAB39C00292CF7 /* lifetimer Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 49B36CA02FAAB39C00292CF7 /* lifetimer Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		49B36CD02FAAC00000292CF7 /* lifetimer Complication.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 49B36CD32FAAC00000292CF7 /* lifetimer Complication.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		49B36CDF2FAAC00000292CF7 /* LifeTimerComplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49B36CDD2FAAC00000292CF7 /* LifeTimerComplication.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		49B36CA22FAAB39C00292CF7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 49B36C942FAAB39C00292CF7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 49B36C9F2FAAB39C00292CF7;
+			remoteInfo = "lifetimer Watch App";
+		};
+		49B36CB02FAAB39D00292CF7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 49B36C942FAAB39C00292CF7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 49B36C9F2FAAB39C00292CF7;
+			remoteInfo = "lifetimer Watch App";
+		};
+		49B36CBA2FAAB39D00292CF7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 49B36C942FAAB39C00292CF7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 49B36C9F2FAAB39C00292CF7;
+			remoteInfo = "lifetimer Watch App";
+		};
+		49B36CD12FAAC00000292CF7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 49B36C942FAAB39C00292CF7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 49B36CD62FAAC00000292CF7;
+			remoteInfo = "lifetimer Complication";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		49B36CC62FAAB39D00292CF7 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				49B36CA12FAAB39C00292CF7 /* lifetimer Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		49B36CD22FAAC00000292CF7 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				49B36CD02FAAC00000292CF7 /* lifetimer Complication.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		49B36C9A2FAAB39C00292CF7 /* lifetimer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = lifetimer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		49B36CA02FAAB39C00292CF7 /* lifetimer Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "lifetimer Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		49B36CAF2FAAB39D00292CF7 /* lifetimer Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "lifetimer Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		49B36CB92FAAB39D00292CF7 /* lifetimer Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "lifetimer Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		49B36CD32FAAC00000292CF7 /* lifetimer Complication.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "lifetimer Complication.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		49B36CDD2FAAC00000292CF7 /* LifeTimerComplication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeTimerComplication.swift; sourceTree = "<group>"; };
+		49B36CDE2FAAC00000292CF7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		49B36CA42FAAB39C00292CF7 /* lifetimer Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "lifetimer Watch App";
+			sourceTree = "<group>";
+		};
+		49B36CB22FAAB39D00292CF7 /* lifetimer Watch AppTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "lifetimer Watch AppTests";
+			sourceTree = "<group>";
+		};
+		49B36CBC2FAAB39D00292CF7 /* lifetimer Watch AppUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "lifetimer Watch AppUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		49B36C9D2FAAB39C00292CF7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4D0000010000000000000001 /* LifeTimerCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		49B36CAC2FAAB39D00292CF7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		49B36CB62FAAB39D00292CF7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		49B36CD52FAAC00000292CF7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4D0000010000000000000002 /* LifeTimerCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		49B36C932FAAB39C00292CF7 = {
+			isa = PBXGroup;
+			children = (
+				49B36CA42FAAB39C00292CF7 /* lifetimer Watch App */,
+				49B36CD42FAAC00000292CF7 /* lifetimer Complication */,
+				49B36CB22FAAB39D00292CF7 /* lifetimer Watch AppTests */,
+				49B36CBC2FAAB39D00292CF7 /* lifetimer Watch AppUITests */,
+				49B36C9B2FAAB39C00292CF7 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		49B36C9B2FAAB39C00292CF7 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				49B36C9A2FAAB39C00292CF7 /* lifetimer.app */,
+				49B36CA02FAAB39C00292CF7 /* lifetimer Watch App.app */,
+				49B36CD32FAAC00000292CF7 /* lifetimer Complication.appex */,
+				49B36CAF2FAAB39D00292CF7 /* lifetimer Watch AppTests.xctest */,
+				49B36CB92FAAB39D00292CF7 /* lifetimer Watch AppUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		49B36CD42FAAC00000292CF7 /* lifetimer Complication */ = {
+			isa = PBXGroup;
+			children = (
+				49B36CDD2FAAC00000292CF7 /* LifeTimerComplication.swift */,
+				49B36CDE2FAAC00000292CF7 /* Info.plist */,
+			);
+			path = "lifetimer Complication";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		49B36C992FAAB39C00292CF7 /* lifetimer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 49B36CC72FAAB39D00292CF7 /* Build configuration list for PBXNativeTarget "lifetimer" */;
+			buildPhases = (
+				49B36C982FAAB39C00292CF7 /* Resources */,
+				49B36CC62FAAB39D00292CF7 /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				49B36CA32FAAB39C00292CF7 /* PBXTargetDependency */,
+			);
+			name = lifetimer;
+			packageProductDependencies = (
+			);
+			productName = lifetimer;
+			productReference = 49B36C9A2FAAB39C00292CF7 /* lifetimer.app */;
+			productType = "com.apple.product-type.application.watchapp2-container";
+		};
+		49B36C9F2FAAB39C00292CF7 /* lifetimer Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 49B36CC32FAAB39D00292CF7 /* Build configuration list for PBXNativeTarget "lifetimer Watch App" */;
+			buildPhases = (
+				49B36C9C2FAAB39C00292CF7 /* Sources */,
+				49B36C9D2FAAB39C00292CF7 /* Frameworks */,
+				49B36C9E2FAAB39C00292CF7 /* Resources */,
+				49B36CD22FAAC00000292CF7 /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				49B36CD92FAAC00000292CF7 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				49B36CA42FAAB39C00292CF7 /* lifetimer Watch App */,
+			);
+			name = "lifetimer Watch App";
+			packageProductDependencies = (
+				4D0000010000000000000011 /* LifeTimerCore */,
+			);
+			productName = "lifetimer Watch App";
+			productReference = 49B36CA02FAAB39C00292CF7 /* lifetimer Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
+		49B36CAE2FAAB39D00292CF7 /* lifetimer Watch AppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 49B36CCA2FAAB39D00292CF7 /* Build configuration list for PBXNativeTarget "lifetimer Watch AppTests" */;
+			buildPhases = (
+				49B36CAB2FAAB39D00292CF7 /* Sources */,
+				49B36CAC2FAAB39D00292CF7 /* Frameworks */,
+				49B36CAD2FAAB39D00292CF7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				49B36CB12FAAB39D00292CF7 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				49B36CB22FAAB39D00292CF7 /* lifetimer Watch AppTests */,
+			);
+			name = "lifetimer Watch AppTests";
+			packageProductDependencies = (
+			);
+			productName = "lifetimer Watch AppTests";
+			productReference = 49B36CAF2FAAB39D00292CF7 /* lifetimer Watch AppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		49B36CB82FAAB39D00292CF7 /* lifetimer Watch AppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 49B36CCD2FAAB39D00292CF7 /* Build configuration list for PBXNativeTarget "lifetimer Watch AppUITests" */;
+			buildPhases = (
+				49B36CB52FAAB39D00292CF7 /* Sources */,
+				49B36CB62FAAB39D00292CF7 /* Frameworks */,
+				49B36CB72FAAB39D00292CF7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				49B36CBB2FAAB39D00292CF7 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				49B36CBC2FAAB39D00292CF7 /* lifetimer Watch AppUITests */,
+			);
+			name = "lifetimer Watch AppUITests";
+			packageProductDependencies = (
+			);
+			productName = "lifetimer Watch AppUITests";
+			productReference = 49B36CB92FAAB39D00292CF7 /* lifetimer Watch AppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		49B36CD62FAAC00000292CF7 /* lifetimer Complication */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 49B36CDC2FAAC00000292CF7 /* Build configuration list for PBXNativeTarget "lifetimer Complication" */;
+			buildPhases = (
+				49B36CD82FAAC00000292CF7 /* Sources */,
+				49B36CD52FAAC00000292CF7 /* Frameworks */,
+				49B36CD72FAAC00000292CF7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "lifetimer Complication";
+			packageProductDependencies = (
+				4D0000010000000000000011 /* LifeTimerCore */,
+			);
+			productName = "lifetimer Complication";
+			productReference = 49B36CD32FAAC00000292CF7 /* lifetimer Complication.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		49B36C942FAAB39C00292CF7 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2640;
+				LastUpgradeCheck = 2640;
+				TargetAttributes = {
+					49B36C992FAAB39C00292CF7 = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
+					49B36C9F2FAAB39C00292CF7 = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
+					49B36CAE2FAAB39D00292CF7 = {
+						CreatedOnToolsVersion = 26.4.1;
+						TestTargetID = 49B36C9F2FAAB39C00292CF7;
+					};
+					49B36CB82FAAB39D00292CF7 = {
+						CreatedOnToolsVersion = 26.4.1;
+						TestTargetID = 49B36C9F2FAAB39C00292CF7;
+					};
+					49B36CD62FAAC00000292CF7 = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
+				};
+			};
+			buildConfigurationList = 49B36C972FAAB39C00292CF7 /* Build configuration list for PBXProject "lifetimer" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 49B36C932FAAB39C00292CF7;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 49B36C9B2FAAB39C00292CF7 /* Products */;
+			packageReferences = (
+				4D0000010000000000000010 /* XCLocalSwiftPackageReference "lifetimer" */,
+			);
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				49B36C992FAAB39C00292CF7 /* lifetimer */,
+				49B36C9F2FAAB39C00292CF7 /* lifetimer Watch App */,
+				49B36CD62FAAC00000292CF7 /* lifetimer Complication */,
+				49B36CAE2FAAB39D00292CF7 /* lifetimer Watch AppTests */,
+				49B36CB82FAAB39D00292CF7 /* lifetimer Watch AppUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		49B36C982FAAB39C00292CF7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		49B36C9E2FAAB39C00292CF7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		49B36CAD2FAAB39D00292CF7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		49B36CB72FAAB39D00292CF7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		49B36CD72FAAC00000292CF7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		49B36C9C2FAAB39C00292CF7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		49B36CAB2FAAB39D00292CF7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		49B36CB52FAAB39D00292CF7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		49B36CD82FAAC00000292CF7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				49B36CDF2FAAC00000292CF7 /* LifeTimerComplication.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		49B36CA32FAAB39C00292CF7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 49B36C9F2FAAB39C00292CF7 /* lifetimer Watch App */;
+			targetProxy = 49B36CA22FAAB39C00292CF7 /* PBXContainerItemProxy */;
+		};
+		49B36CB12FAAB39D00292CF7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 49B36C9F2FAAB39C00292CF7 /* lifetimer Watch App */;
+			targetProxy = 49B36CB02FAAB39D00292CF7 /* PBXContainerItemProxy */;
+		};
+		49B36CBB2FAAB39D00292CF7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 49B36C9F2FAAB39C00292CF7 /* lifetimer Watch App */;
+			targetProxy = 49B36CBA2FAAB39D00292CF7 /* PBXContainerItemProxy */;
+		};
+		49B36CD92FAAC00000292CF7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 49B36CD62FAAC00000292CF7 /* lifetimer Complication */;
+			targetProxy = 49B36CD12FAAC00000292CF7 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		49B36CC12FAAB39D00292CF7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		49B36CC22FAAB39D00292CF7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		49B36CC42FAAB39D00292CF7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = "lifetimer Watch App/lifetimer Watch App.entitlements";
+				CURRENT_PROJECT_VERSION = 2;
+					DEVELOPMENT_TEAM = J5UXQQS99D;
+					ENABLE_PREVIEWS = YES;
+					GENERATE_INFOPLIST_FILE = YES;
+					INFOPLIST_KEY_CFBundleDisplayName = "Life Timer";
+					INFOPLIST_KEY_CFBundleURLTypes = (
+						{
+							CFBundleTypeRole = Viewer;
+							CFBundleURLName = yaksic.lifetimer.watchkitapp;
+							CFBundleURLSchemes = (
+								lifetimer,
+							);
+						},
+					);
+					INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+					INFOPLIST_KEY_WKWatchOnly = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = yaksic.lifetimer.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.4;
+			};
+			name = Debug;
+		};
+		49B36CC52FAAB39D00292CF7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = "lifetimer Watch App/lifetimer Watch App.entitlements";
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = J5UXQQS99D;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Life Timer";
+				INFOPLIST_KEY_CFBundleURLTypes = (
+					{
+						CFBundleTypeRole = Viewer;
+						CFBundleURLName = yaksic.lifetimer.watchkitapp;
+						CFBundleURLSchemes = (
+							lifetimer,
+						);
+					},
+				);
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKWatchOnly = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = yaksic.lifetimer.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 26.4;
+			};
+			name = Release;
+		};
+		49B36CC82FAAB39D00292CF7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = J5UXQQS99D;
+				INFOPLIST_KEY_CFBundleDisplayName = "Life Timer";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = yaksic.lifetimer;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		49B36CC92FAAB39D00292CF7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = J5UXQQS99D;
+				INFOPLIST_KEY_CFBundleDisplayName = "Life Timer";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = yaksic.lifetimer;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		49B36CCB2FAAB39D00292CF7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "yaksic.lifetimer-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/lifetimer Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/lifetimer Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 26.4;
+			};
+			name = Debug;
+		};
+		49B36CCC2FAAB39D00292CF7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "yaksic.lifetimer-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/lifetimer Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/lifetimer Watch App";
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 26.4;
+			};
+			name = Release;
+		};
+		49B36CCE2FAAB39D00292CF7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "yaksic.lifetimer-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "lifetimer Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 26.4;
+			};
+			name = Debug;
+		};
+		49B36CCF2FAAB39D00292CF7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "yaksic.lifetimer-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "lifetimer Watch App";
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 26.4;
+			};
+			name = Release;
+		};
+		49B36CDA2FAAC00000292CF7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = "lifetimer Complication/lifetimer Complication.entitlements";
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = J5UXQQS99D;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "lifetimer Complication/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Life Timer";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = yaksic.lifetimer.watchkitapp.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.4;
+			};
+			name = Debug;
+		};
+		49B36CDB2FAAC00000292CF7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = "lifetimer Complication/lifetimer Complication.entitlements";
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = J5UXQQS99D;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "lifetimer Complication/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Life Timer";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = yaksic.lifetimer.watchkitapp.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 26.4;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		49B36C972FAAB39C00292CF7 /* Build configuration list for PBXProject "lifetimer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				49B36CC12FAAB39D00292CF7 /* Debug */,
+				49B36CC22FAAB39D00292CF7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		49B36CC32FAAB39D00292CF7 /* Build configuration list for PBXNativeTarget "lifetimer Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				49B36CC42FAAB39D00292CF7 /* Debug */,
+				49B36CC52FAAB39D00292CF7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		49B36CC72FAAB39D00292CF7 /* Build configuration list for PBXNativeTarget "lifetimer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				49B36CC82FAAB39D00292CF7 /* Debug */,
+				49B36CC92FAAB39D00292CF7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		49B36CCA2FAAB39D00292CF7 /* Build configuration list for PBXNativeTarget "lifetimer Watch AppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				49B36CCB2FAAB39D00292CF7 /* Debug */,
+				49B36CCC2FAAB39D00292CF7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		49B36CCD2FAAB39D00292CF7 /* Build configuration list for PBXNativeTarget "lifetimer Watch AppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				49B36CCE2FAAB39D00292CF7 /* Debug */,
+				49B36CCF2FAAB39D00292CF7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		49B36CDC2FAAC00000292CF7 /* Build configuration list for PBXNativeTarget "lifetimer Complication" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				49B36CDA2FAAC00000292CF7 /* Debug */,
+				49B36CDB2FAAC00000292CF7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		4D0000010000000000000010 /* XCLocalSwiftPackageReference "lifetimer" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4D0000010000000000000011 /* LifeTimerCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4D0000010000000000000010 /* XCLocalSwiftPackageReference "lifetimer" */;
+			productName = LifeTimerCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 49B36C942FAAB39C00292CF7 /* Project object */;
+}

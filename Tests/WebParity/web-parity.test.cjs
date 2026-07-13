@@ -1,7 +1,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const core = require("../../life-timer-core.js");
+const core = require("../../Web/life-timer-core.js");
 
 const fixturePath = path.join(__dirname, "../LifeTimerCoreTests/Fixtures/progress-v1.json");
 const fixtures = JSON.parse(fs.readFileSync(fixturePath, "utf8"));

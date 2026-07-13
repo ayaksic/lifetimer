@@ -27,18 +27,18 @@ jobs:
         run: |
           mkdir _site
           cp \
-            index.html \
-            site.webmanifest \
-            apple-touch-icon-180.png \
-            apple-touch-icon.png \
-            icon-1024.png \
-            icon-192.png \
-            icon-512.png \
-            hope.mp3 \
-            nonsense.wav \
-            life-timer-core.js \
-            cloudkit-config.js \
-            cloudkit-settings.js \
+            Web/index.html \
+            Web/site.webmanifest \
+            Web/apple-touch-icon-180.png \
+            Web/apple-touch-icon.png \
+            Web/icon-1024.png \
+            Web/icon-192.png \
+            Web/icon-512.png \
+            Web/hope.mp3 \
+            Web/nonsense.wav \
+            Web/life-timer-core.js \
+            Web/cloudkit-config.js \
+            Web/cloudkit-settings.js \
             _site/
 
       - uses: actions/upload-pages-artifact@v4

@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 
-const source = fs.readFileSync(path.join(__dirname, "../../cloudkit-settings.js"), "utf8");
+const source = fs.readFileSync(path.join(__dirname, "../../Web/cloudkit-settings.js"), "utf8");
 
 function loadSync(database, configureCapture) {
   const container = {

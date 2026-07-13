@@ -1,21 +1,32 @@
+//
+//  ContentView.swift
+//  Life Timer
+//
+//  Created by Andrew Yaksic on 5/5/26.
+//
+
 import AVFoundation
 import LifeTimerCore
 import SwiftUI
 
 struct ContentView: View {
-    @AppStorage("lifeTimerLifetimeStart") private var lifetimeStartValue = defaultLifetimeStart.timeIntervalSinceReferenceDate
-    @AppStorage("lifeTimerUnitPositionEnabled") private var unitPositionEnabled = false
+    @Environment(\.scenePhase) private var scenePhase
 
+    @State private var settings = LifeTimerSettingsRepository.shared.current()
     @State private var pageIndex = 0
     @State private var showingLifetimeEditor = false
     @State private var liveActivityIsRunning = false
     @State private var liveActivityIsAvailable = false
-    private let soundPlayer = HopeSoundPlayer()
+    private let soundPlayer = LifeTimerSoundPlayer()
 
     private let pages = TimerPage.all
 
     private var lifetimeStart: Date {
-        Date(timeIntervalSinceReferenceDate: lifetimeStartValue)
+        settings.lifetimeStart
+    }
+
+    private var unitPositionEnabled: Bool {
+        settings.unitPositionEnabled
     }
 
     var body: some View {
@@ -31,38 +42,40 @@ struct ContentView: View {
         .persistentSystemOverlays(.hidden)
         .gesture(swipeGesture)
         .onTapGesture(count: 2) {
-            soundPlayer.play()
+            handleDoubleTap()
         }
         .onLongPressGesture(minimumDuration: 0.68) {
             handleLongPress()
         }
         .safeAreaInset(edge: .bottom) {
-            LiveActivityBar(
-                isRunning: liveActivityIsRunning,
-                isAvailable: liveActivityIsAvailable,
-                startAction: {
-                    Task {
-                        let status = await LifeTimerLiveActivityManager.startHourTimer(now: Date())
-                        applyLiveActivityStatus(status)
+            if pages[pageIndex].period == .hour && pages[pageIndex].style == .flow {
+                LiveActivityBar(
+                    isRunning: liveActivityIsRunning,
+                    isAvailable: liveActivityIsAvailable,
+                    startAction: {
+                        Task {
+                            let status = await LifeTimerLiveActivityManager.startHourTimer(now: Date())
+                            applyLiveActivityStatus(status)
+                        }
+                    },
+                    stopAction: {
+                        Task {
+                            let status = await LifeTimerLiveActivityManager.endHourTimer()
+                            applyLiveActivityStatus(status)
+                        }
                     }
-                },
-                stopAction: {
-                    Task {
-                        let status = await LifeTimerLiveActivityManager.endHourTimer()
-                        applyLiveActivityStatus(status)
-                    }
-                }
-            )
+                )
+            }
         }
         .sheet(isPresented: $showingLifetimeEditor) {
             LifetimeEditor(
                 lifetimeStart: lifetimeStart,
                 resetAction: {
-                    lifetimeStartValue = defaultLifetimeStart.timeIntervalSinceReferenceDate
+                    settings = LifeTimerSettingsRepository.shared.update(lifetimeStart: defaultLifetimeStart)
                     showingLifetimeEditor = false
                 },
                 saveAction: { nextStart in
-                    lifetimeStartValue = nextStart.timeIntervalSinceReferenceDate
+                    settings = LifeTimerSettingsRepository.shared.update(lifetimeStart: nextStart)
                     showingLifetimeEditor = false
                 }
             )
@@ -70,8 +83,23 @@ struct ContentView: View {
             .presentationDragIndicator(.visible)
         }
         .task {
-            let status = await LifeTimerLiveActivityManager.refresh()
-            applyLiveActivityStatus(status)
+            LifeTimerSettingsRepository.shared.start()
+            settings = LifeTimerSettingsRepository.shared.current()
+            await monitorLiveActivity()
+        }
+        .onReceive(
+            NotificationCenter.default.publisher(for: LifeTimerSettingsRepository.didChangeNotification)
+        ) { _ in
+            settings = LifeTimerSettingsRepository.shared.current()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active else { return }
+
+            Task {
+                await LifeTimerSettingsRepository.shared.refreshFromCloud()
+                let status = await LifeTimerLiveActivityManager.refresh()
+                applyLiveActivityStatus(status)
+            }
         }
     }
 
@@ -107,9 +135,21 @@ struct ContentView: View {
         let page = pages[pageIndex]
 
         if page.period == .hour && page.style == .flow {
-            unitPositionEnabled.toggle()
+            settings = LifeTimerSettingsRepository.shared.update(
+                unitPositionEnabled: !settings.unitPositionEnabled
+            )
         } else if page.period == .lifetime {
             showingLifetimeEditor = true
+        }
+    }
+
+    private func handleDoubleTap() {
+        let page = pages[pageIndex]
+
+        if page.period == .hour && page.style == .flow {
+            soundPlayer.play(.nonsense)
+        } else if page.period == .day && page.style == .flow {
+            soundPlayer.play(.hope)
         }
     }
 
@@ -117,24 +157,57 @@ struct ContentView: View {
         liveActivityIsRunning = status.isRunning
         liveActivityIsAvailable = status.isAvailable
     }
+
+    private func monitorLiveActivity() async {
+        while !Task.isCancelled {
+            let status = await LifeTimerLiveActivityManager.refresh()
+            applyLiveActivityStatus(status)
+
+            do {
+                try await Task.sleep(for: .seconds(5))
+            } catch {
+                return
+            }
+        }
+    }
 }
 
-private final class HopeSoundPlayer {
-    private var player: AVAudioPlayer?
+private enum LifeTimerSound: CaseIterable, Hashable {
+    case hope
+    case nonsense
+
+    var resource: (name: String, extension: String) {
+        switch self {
+        case .hope:
+            return ("hope", "mp3")
+        case .nonsense:
+            return ("nonsense", "wav")
+        }
+    }
+}
+
+private final class LifeTimerSoundPlayer {
+    private var players: [LifeTimerSound: AVAudioPlayer] = [:]
 
     init() {
-        guard let url = Bundle.main.url(forResource: "hope", withExtension: "mp3") else { return }
+        for sound in LifeTimerSound.allCases {
+            let resource = sound.resource
+            guard let url = Bundle.main.url(forResource: resource.name, withExtension: resource.extension) else {
+                continue
+            }
 
-        do {
-            player = try AVAudioPlayer(contentsOf: url)
-            player?.prepareToPlay()
-        } catch {
-            player = nil
+            do {
+                let player = try AVAudioPlayer(contentsOf: url)
+                player.prepareToPlay()
+                players[sound] = player
+            } catch {
+                continue
+            }
         }
     }
 
-    func play() {
-        guard let player else { return }
+    func play(_ sound: LifeTimerSound) {
+        guard let player = players[sound] else { return }
         player.currentTime = 0
         player.play()
     }
@@ -453,18 +526,23 @@ private struct LiveActivityBar: View {
     let stopAction: () -> Void
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack {
+            Spacer()
+
             Button(action: isRunning ? stopAction : startAction) {
-                Text(isRunning ? "End Hour Live Activity" : "Start Hour Live Activity")
-                    .font(.system(size: 14, weight: .heavy, design: .rounded))
-                    .frame(maxWidth: .infinity)
+                Image(systemName: isRunning ? "stop.fill" : "dot.radiowaves.left.and.right")
+                    .font(.system(size: 15, weight: .heavy))
+                    .foregroundStyle(isRunning ? Color.lifeLive : Color.lifeRemaining)
+                    .frame(width: 34, height: 34)
+                    .background(Color.lifeInk.opacity(isRunning ? 0.92 : 0.72), in: Circle())
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.lifeInk)
+            .buttonStyle(.plain)
             .disabled(!isAvailable)
+            .opacity(isAvailable ? 1 : 0)
+            .accessibilityLabel(isRunning ? "End hour Live Activity" : "Start hour Live Activity")
         }
         .padding(.horizontal, 16)
-        .padding(.bottom, 10)
+        .padding(.bottom, 8)
         .background(.clear)
     }
 }
