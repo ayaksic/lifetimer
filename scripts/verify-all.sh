@@ -11,7 +11,7 @@ echo "[2/9] Contracts, manifest, schemes, versions, and entitlements"
 node scripts/check-contracts.mjs
 
 echo "[3/9] Swift package and native CloudKit adapter tests"
-swift test
+TZ=America/New_York swift test
 
 echo "[4/9] Shared Swift/JavaScript fixture parity"
 TZ=America/New_York node Tests/WebParity/web-parity.test.cjs
