@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lifetimer.local/contracts/life-timer-settings-v1.schema.json",
+  "title": "Life Timer synchronized settings v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "lifetimeStart",
+    "unitPositionEnabled",
+    "updatedAt"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "lifetimeStart": { "type": "string", "format": "date-time" },
+    "unitPositionEnabled": { "type": "boolean" },
+    "updatedAt": { "type": "string", "format": "date-time" }
+  },
+  "x-cloudKit": {
+    "container": "iCloud.yaksic.lifetimer",
+    "environment": "production",
+    "database": "private",
+    "recordType": "LifeTimerSettings",
+    "recordName": "settings",
+    "dateEncoding": "millisecondsSince1970",
+    "conflictRule": "newest-updatedAt-wins"
+  },
+  "x-nativeCache": {
+    "appGroup": "group.yaksic.lifetimer",
+    "key": "lifeTimer.settings.v1"
+  },
+  "x-presentationState": {
+    "synchronized": false,
+    "examples": ["period", "pageIndex", "flowOrGrid", "openSheet"]
+  }
+}

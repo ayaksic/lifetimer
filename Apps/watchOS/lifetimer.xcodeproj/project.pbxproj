@@ -194,6 +194,7 @@
 				49B36C9D2FAAB39C00292CF7 /* Frameworks */,
 				49B36C9E2FAAB39C00292CF7 /* Resources */,
 				49B36CD22FAAC00000292CF7 /* Embed App Extensions */,
+				4D0000010000000000000021 /* Embed Life Timer Build Info */,
 			);
 			buildRules = (
 			);
@@ -369,6 +370,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		4D0000010000000000000021 /* Embed Life Timer Build Info */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Life Timer Build Info";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "\"$SRCROOT/../../scripts/embed-native-build-info.sh\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		49B36C9C2FAAB39C00292CF7 /* Sources */ = {
@@ -550,6 +573,7 @@
 				CURRENT_PROJECT_VERSION = 2;
 					DEVELOPMENT_TEAM = J5UXQQS99D;
 					ENABLE_PREVIEWS = YES;
+					ENABLE_USER_SCRIPT_SANDBOXING = NO;
 					GENERATE_INFOPLIST_FILE = YES;
 					INFOPLIST_KEY_CFBundleDisplayName = "Life Timer";
 					INFOPLIST_KEY_CFBundleURLTypes = (
@@ -593,6 +617,7 @@
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = J5UXQQS99D;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Life Timer";
 				INFOPLIST_KEY_CFBundleURLTypes = (

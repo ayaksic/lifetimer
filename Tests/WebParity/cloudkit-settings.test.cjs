@@ -55,6 +55,12 @@ async function testTimestampEncoding() {
   assert.equal(savedRecord.fields.lifetimeStart.value, lifetimeStart.getTime());
   assert.equal(savedRecord.fields.updatedAt.value, updatedAt.getTime());
   assert.equal(savedRecord.fields.unitPositionEnabled.value, 1);
+  assert.deepEqual(Object.keys(savedRecord.fields).sort(), [
+    "lifetimeStart",
+    "schemaVersion",
+    "unitPositionEnabled",
+    "updatedAt",
+  ]);
   assert.deepEqual(statuses.at(-1), ["synced"]);
 }
 

@@ -13,8 +13,10 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
 
     @State private var settings = LifeTimerSettingsRepository.shared.current()
+    @State private var diagnostics = LifeTimerSettingsRepository.shared.diagnostics()
     @State private var pageIndex = 0
     @State private var showingLifetimeEditor = false
+    @State private var showingDiagnostics = false
     @State private var liveActivityIsRunning = false
     @State private var liveActivityIsAvailable = false
     private let soundPlayer = LifeTimerSoundPlayer()
@@ -46,6 +48,22 @@ struct ContentView: View {
         }
         .onLongPressGesture(minimumDuration: 0.68) {
             handleLongPress()
+        }
+        .overlay(alignment: .topLeading) {
+            Button {
+                diagnostics = LifeTimerSettingsRepository.shared.diagnostics()
+                showingDiagnostics = true
+            } label: {
+                Image(systemName: diagnostics.isPending ? "icloud.and.arrow.up" : "info.circle")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(Color.lifeInk.opacity(0.58))
+                    .frame(width: 34, height: 34)
+                    .background(Color.lifeRemaining.opacity(0.72), in: Circle())
+            }
+            .buttonStyle(.plain)
+            .padding(.leading, 12)
+            .padding(.top, 8)
+            .accessibilityLabel("Life Timer diagnostics")
         }
         .safeAreaInset(edge: .bottom) {
             if pages[pageIndex].period == .hour && pages[pageIndex].style == .flow {
@@ -82,15 +100,26 @@ struct ContentView: View {
             .presentationDetents([.height(260)])
             .presentationDragIndicator(.visible)
         }
+        .sheet(isPresented: $showingDiagnostics) {
+            LifeTimerDiagnosticsView(
+                identity: .current(),
+                diagnostics: diagnostics,
+                presentation: pages[pageIndex]
+            )
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        }
         .task {
             LifeTimerSettingsRepository.shared.start()
             settings = LifeTimerSettingsRepository.shared.current()
+            diagnostics = LifeTimerSettingsRepository.shared.diagnostics()
             await monitorLiveActivity()
         }
         .onReceive(
             NotificationCenter.default.publisher(for: LifeTimerSettingsRepository.didChangeNotification)
         ) { _ in
             settings = LifeTimerSettingsRepository.shared.current()
+            diagnostics = LifeTimerSettingsRepository.shared.diagnostics()
         }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
@@ -169,6 +198,52 @@ struct ContentView: View {
                 return
             }
         }
+    }
+}
+
+private struct LifeTimerDiagnosticsView: View {
+    let identity: LifeTimerReleaseIdentity
+    let diagnostics: LifeTimerSyncDiagnostics
+    let presentation: TimerPage
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Build") {
+                    LabeledContent("Version", value: "\(identity.version) (\(identity.build))")
+                    LabeledContent("Commit", value: identity.commit)
+                    LabeledContent("Runtime", value: identity.runtimeEnvironment)
+                }
+
+                Section("Settings sync") {
+                    LabeledContent("State", value: diagnostics.status.rawValue)
+                    LabeledContent("Pending", value: diagnostics.isPending ? "Yes" : "No")
+                    LabeledContent("Revision", value: formatted(diagnostics.settingsRevision))
+                    LabeledContent("Last sync", value: formatted(diagnostics.lastSuccessfulSync))
+                    if let detail = diagnostics.detail {
+                        LabeledContent("Detail", value: detail)
+                    }
+                }
+
+                Section("Environment") {
+                    LabeledContent("CloudKit", value: identity.cloudKitEnvironment)
+                    LabeledContent("Container", value: identity.cloudKitContainer)
+                    LabeledContent("App Group", value: LifeTimerSettingsStorage.appGroupIdentifier)
+                }
+
+                Section("Local presentation") {
+                    LabeledContent("Page", value: "\(presentation.period) / \(presentation.style.rawValue)")
+                    Text("Page and flow/grid selection stay on this device and are not synchronized.")
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("Diagnostics")
+        }
+    }
+
+    private func formatted(_ date: Date?) -> String {
+        guard let date, date != .distantPast else { return "Never" }
+        return date.formatted(date: .abbreviated, time: .standard)
     }
 }
 

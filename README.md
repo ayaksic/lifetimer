@@ -20,11 +20,13 @@ The native Xcode projects link `LifeTimerCore` directly from this repository roo
 
 ## Validation
 
-Run the shared Swift and browser tests from the repository root:
+Run the complete clean-checkout gate from the repository root:
 
 ```sh
-./test.sh
+./scripts/verify-all.sh
 ```
+
+This includes shared Swift/web tests, fake CloudKit adapter tests, contract and entitlement drift checks, generated web assembly, secret/history checks, and unsigned simulator builds for all four native surfaces. The smaller `./test.sh` command remains available for package/web-only iteration.
 
 The native projects are:
 
@@ -37,11 +39,15 @@ The first consolidated native release is version `1.0 (2)`. Increment `CURRENT_P
 
 ## Settings synchronization
 
-Native targets cache `LifeTimerSettings` in App Group `group.yaksic.lifetimer`. The iPhone and Watch apps mirror the newest timestamped settings record to the private CloudKit database in `iCloud.yaksic.lifetimer`. Widgets and complications read the local App Group cache; opening either host app refreshes it from CloudKit.
+Native hosts cache `LifeTimerSettings` in App Group `group.yaksic.lifetimer`. Each App Group is local to its Apple platform/device; it is not an iPhone-to-Watch transport. The iPhone and Watch apps mirror the newest timestamped settings record to the private CloudKit database in `iCloud.yaksic.lifetimer`. Opening either host app refreshes its local cache from CloudKit. The Watch complication reads its Watch-local cache and reloads timelines after host changes. The iOS extension is an hour Live Activity and does not consume lifetime settings.
+
+There is no WatchConnectivity implementation. Cross-device convergence depends on CloudKit availability and host refresh. `lifetimeStart` and `unitPositionEnabled` synchronize; current period/page and flow/grid choice remain local session presentation and are never uploaded.
 
 The web app uses the same private CloudKit record through CloudKit JS. The production schema and API token are configured for `https://ayaksic.github.io`. Local file or localhost runs remain on-device. If the hosting origin changes, update the token's Allowed Origins entry in CloudKit Dashboard.
 
 If CloudKit is unavailable, the web app remains functional with local browser settings and reports `On device`.
+
+The iPhone and Watch host apps expose compact diagnostics, and the web sync indicator expands to show version/build/commit, settings revision, last sync, pending state, and environment/container metadata. See `OPERATIONS.md` for the authoritative propagation and recovery map.
 
 ## Web deployment
 

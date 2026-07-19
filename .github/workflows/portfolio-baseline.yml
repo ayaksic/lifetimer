@@ -1,0 +1,26 @@
+name: Life Timer verification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: macos-26
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Report Xcode toolchain
+        run: xcodebuild -version
+
+      - name: Verify complete consolidated repository
+        run: ./scripts/verify-all.sh

@@ -258,11 +258,55 @@
         z-index: 5;
         right: max(8px, env(safe-area-inset-right));
         bottom: max(8px, env(safe-area-inset-bottom));
-        display: flex;
-        align-items: center;
+        display: grid;
+        justify-items: end;
         gap: 6px;
         color: rgba(22, 19, 18, 0.58);
         font: 700 10px ui-sans-serif, system-ui, sans-serif;
+      }
+
+      .sync-summary {
+        appearance: none;
+        border: 0;
+        border-radius: 999px;
+        padding: 5px 8px;
+        background: rgba(251, 248, 243, 0.82);
+        color: inherit;
+        font: inherit;
+      }
+
+      .sync-diagnostics {
+        width: min(300px, calc(100vw - 16px));
+        max-height: min(360px, calc(100vh - 72px));
+        overflow: auto;
+        border: 1px solid rgba(22, 19, 18, 0.16);
+        border-radius: 12px;
+        padding: 9px 10px;
+        background: rgba(251, 248, 243, 0.96);
+        box-shadow: 0 8px 30px rgba(22, 19, 18, 0.12);
+      }
+
+      .sync-diagnostics[hidden] {
+        display: none;
+      }
+
+      .sync-diagnostics dl {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 4px 10px;
+        margin: 0 0 8px;
+      }
+
+      .sync-diagnostics dt {
+        color: rgba(22, 19, 18, 0.52);
+      }
+
+      .sync-diagnostics dd {
+        min-width: 0;
+        margin: 0;
+        overflow-wrap: anywhere;
+        text-align: right;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       }
 
       #apple-sign-in-button,
@@ -283,9 +327,25 @@
       </div>
     </main>
     <aside class="sync-panel" aria-live="polite">
-      <span id="cloud-sync-status">On device</span>
-      <div id="apple-sign-in-button"></div>
-      <div id="apple-sign-out-button"></div>
+      <button class="sync-summary" id="sync-diagnostics-toggle" type="button" aria-expanded="false">
+        <span id="cloud-sync-status">On device</span>
+      </button>
+      <div class="sync-diagnostics" id="sync-diagnostics" hidden>
+        <dl>
+          <dt>Version/build</dt><dd id="diagnostic-version">web (source)</dd>
+          <dt>Commit</dt><dd id="diagnostic-commit">working-tree</dd>
+          <dt>Runtime</dt><dd id="diagnostic-environment">local-source</dd>
+          <dt>CloudKit</dt><dd id="diagnostic-cloudkit">production</dd>
+          <dt>Container</dt><dd id="diagnostic-container">iCloud.yaksic.lifetimer</dd>
+          <dt>Schema</dt><dd id="diagnostic-schema">1</dd>
+          <dt>Revision</dt><dd id="diagnostic-revision">Never</dd>
+          <dt>Last sync</dt><dd id="diagnostic-last-sync">Never</dd>
+          <dt>Pending</dt><dd id="diagnostic-pending">No</dd>
+          <dt>Local view</dt><dd id="diagnostic-presentation">hour / flow</dd>
+        </dl>
+        <div id="apple-sign-in-button"></div>
+        <div id="apple-sign-out-button"></div>
+      </div>
     </aside>
     <form
       class="lifetime-editor"
@@ -324,6 +384,7 @@
       </div>
     </form>
 
+    <script src="build-info.js"></script>
     <script src="life-timer-core.js"></script>
     <script src="https://cdn.apple-cloudkit.com/ck/2/cloudkit.js"></script>
     <script src="cloudkit-config.js"></script>
@@ -342,9 +403,27 @@
       const lifetimeTimeInput = document.getElementById("lifetime-start-time");
       const cloudSyncStatus = document.getElementById("cloud-sync-status");
       const syncPanel = document.querySelector(".sync-panel");
+      const syncDiagnosticsToggle = document.getElementById("sync-diagnostics-toggle");
+      const syncDiagnostics = document.getElementById("sync-diagnostics");
+      const diagnosticVersion = document.getElementById("diagnostic-version");
+      const diagnosticCommit = document.getElementById("diagnostic-commit");
+      const diagnosticEnvironment = document.getElementById("diagnostic-environment");
+      const diagnosticCloudKit = document.getElementById("diagnostic-cloudkit");
+      const diagnosticContainer = document.getElementById("diagnostic-container");
+      const diagnosticSchema = document.getElementById("diagnostic-schema");
+      const diagnosticRevision = document.getElementById("diagnostic-revision");
+      const diagnosticLastSync = document.getElementById("diagnostic-last-sync");
+      const diagnosticPending = document.getElementById("diagnostic-pending");
+      const diagnosticPresentation = document.getElementById("diagnostic-presentation");
       for (const eventName of ["pointerdown", "pointerup", "click", "touchstart", "touchend"]) {
         syncPanel.addEventListener(eventName, (event) => event.stopPropagation());
       }
+      syncDiagnosticsToggle.addEventListener("click", () => {
+        const isOpen = syncDiagnostics.hidden;
+        syncDiagnostics.hidden = !isOpen;
+        syncDiagnosticsToggle.setAttribute("aria-expanded", String(isOpen));
+        updateDiagnostics();
+      });
       const colors = {
         elapsed: "#b66a5f",
         remaining: "#fbf8f3",
@@ -357,9 +436,13 @@
       const lifetimeStartStorageKey = "lifeTimerLifetimeStart";
       const unitPositionStorageKey = "lifeTimerUnitPositionEnabled";
       const settingsUpdatedAtStorageKey = "lifeTimerSettingsUpdatedAt";
+      const lastSuccessfulSyncStorageKey = "lifeTimerLastSuccessfulSync";
       let lifetimeStart = readLifetimeStart();
       let unitPositionEnabled = readUnitPositionEnabled();
       let settingsUpdatedAt = readSettingsUpdatedAt();
+      let lastSuccessfulSync = readStoredDate(lastSuccessfulSyncStorageKey);
+      let cloudSyncState = "local";
+      let settingsPending = false;
 
       const pageDefinitions = [
         { label: "Hour", period: "hour", decimalPlaces: 4 },
@@ -479,11 +562,23 @@
         return new Date(0);
       }
 
+      function readStoredDate(key) {
+        try {
+          const value = window.localStorage.getItem(key);
+          const date = value ? new Date(value) : null;
+          return date && Number.isFinite(date.getTime()) ? date : null;
+        } catch (error) {
+          return null;
+        }
+      }
+
       function markSettingsUpdated() {
         settingsUpdatedAt = new Date();
         try {
           window.localStorage.setItem(settingsUpdatedAtStorageKey, settingsUpdatedAt.toISOString());
         } catch (error) {}
+        settingsPending = cloudSyncState !== "local";
+        updateDiagnostics();
         LifeTimerCloudSync.save(getLocalSettings());
       }
 
@@ -505,6 +600,8 @@
           window.localStorage.setItem(unitPositionStorageKey, unitPositionEnabled ? "true" : "false");
           window.localStorage.setItem(settingsUpdatedAtStorageKey, settingsUpdatedAt.toISOString());
         } catch (error) {}
+        settingsPending = false;
+        updateDiagnostics();
       }
 
       function setCloudSyncStatus(status, detail) {
@@ -516,8 +613,40 @@
           offline: "iCloud offline",
           error: "iCloud error",
         };
+        cloudSyncState = status;
+        if (status === "synced") {
+          lastSuccessfulSync = new Date();
+          settingsPending = false;
+          try {
+            window.localStorage.setItem(lastSuccessfulSyncStorageKey, lastSuccessfulSync.toISOString());
+          } catch (error) {}
+        } else if (status === "local") {
+          settingsPending = false;
+        }
         cloudSyncStatus.textContent = labels[status] || status;
         cloudSyncStatus.title = detail || "";
+        updateDiagnostics();
+      }
+
+      function updateDiagnostics() {
+        const build = window.LIFE_TIMER_BUILD_INFO || {};
+        const cloud = window.LIFE_TIMER_CLOUDKIT_CONFIG || {};
+        const page = periods && periods[activePeriod];
+        diagnosticVersion.textContent = `${build.version || "web"} (${build.build || "source"})`;
+        diagnosticCommit.textContent = build.commit || "working-tree";
+        diagnosticEnvironment.textContent = build.environment || "local-source";
+        diagnosticCloudKit.textContent = cloud.environment || "local-only";
+        diagnosticContainer.textContent = cloud.containerIdentifier || "not configured";
+        diagnosticSchema.textContent = "1";
+        diagnosticRevision.textContent = formatDiagnosticDate(settingsUpdatedAt);
+        diagnosticLastSync.textContent = formatDiagnosticDate(lastSuccessfulSync);
+        diagnosticPending.textContent = settingsPending ? "Yes" : "No";
+        diagnosticPresentation.textContent = page ? `${page.period} / ${page.view}` : "unknown";
+      }
+
+      function formatDiagnosticDate(date) {
+        if (!date || !Number.isFinite(date.getTime()) || date.getTime() === 0) return "Never";
+        return date.toLocaleString();
       }
 
       function setLifetimeStart(date) {
@@ -1046,10 +1175,12 @@
 
       function showNextPeriod() {
         activePeriod = (activePeriod + 1) % periods.length;
+        updateDiagnostics();
       }
 
       function showPreviousPeriod() {
         activePeriod = (activePeriod - 1 + periods.length) % periods.length;
+        updateDiagnostics();
       }
 
       function isLifetimePage() {
@@ -1347,6 +1478,7 @@
       });
 
       resizeCanvas();
+      updateDiagnostics();
       LifeTimerCloudSync.start({
         getLocalSettings,
         applyRemoteSettings,

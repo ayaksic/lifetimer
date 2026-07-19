@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 3,
+  "id": "lifetimer",
+  "kind": "application",
+  "name": "Life Timer",
+  "family": "lifetimer",
+  "status": "active",
+  "repository": {
+    "path": "/Users/andrew/Documents/lifetimer",
+    "remote": "https://github.com/ayaksic/lifetimer.git"
+  },
+  "clients": [
+    { "name": "LifeTimerCore", "platform": "Swift package", "role": "Shared timer behavior, settings contract, CloudKit reconciliation, and diagnostics" },
+    { "name": "Life Timer web", "platform": "Static HTML and JavaScript", "role": "Browser timer with local fallback and private CloudKit settings sync" },
+    { "name": "Life Timer", "platform": "iOS/iPadOS", "role": "Native host UI and Live Activity control" },
+    { "name": "Life Timer WidgetsExtension", "platform": "iOS WidgetKit/ActivityKit", "role": "Hour Live Activity and Dynamic Island presentation" },
+    { "name": "Life Timer Watch App", "platform": "watchOS", "role": "Native Watch host UI and CloudKit refresh" },
+    { "name": "Life Timer complication", "platform": "watchOS WidgetKit", "role": "Local hour/day complication timelines" }
+  ],
+  "authorities": [
+    {
+      "concept": "Calendar progress behavior",
+      "authority": "LifeTimerCore plus progress-v1 shared parity fixture",
+      "consumers": ["Swift native clients", "Web/life-timer-core.js"],
+      "conflictRule": "Swift and JavaScript must pass the same versioned fixtures"
+    },
+    {
+      "concept": "Lifetime settings",
+      "authority": "Newest valid LifeTimerSettings.updatedAt revision",
+      "consumers": ["iPhone", "Watch", "web", "local extensions where relevant"],
+      "conflictRule": "Last writer by client timestamp wins; local App Group/browser state remains usable and pending while offline"
+    },
+    {
+      "concept": "Period/page and flow/grid presentation",
+      "authority": "Each client session",
+      "consumers": ["Current client only"],
+      "conflictRule": "Never synchronized unless a future versioned contract explicitly adds presentation state"
+    }
+  ],
+  "environments": [
+    { "name": "local-source", "url": null, "deployCommand": null, "verifyCommand": "./scripts/verify-all.sh" },
+    { "name": "github-pages-production", "url": "https://ayaksic.github.io/lifetimer/", "deployCommand": "GitHub Actions .github/workflows/pages.yml after authorized push to main", "verifyCommand": null },
+    { "name": "apple-device-production", "url": null, "deployCommand": "Authorized signed Xcode archive/install", "verifyCommand": "Manual device acceptance in docs/RELEASE_CHECKLIST.md" }
+  ],
+  "commands": {
+    "setup": "Requires Xcode 26, Swift, Node.js, Git, and iOS/watchOS simulator SDKs",
+    "verify": "./scripts/verify-all.sh",
+    "build": "./scripts/verify-all.sh",
+    "deploy": null,
+    "verifyProduction": null
+  },
+  "data": {
+    "classification": "private personal lifetime settings",
+    "authoritativeStore": "Newest timestamped settings revision cached locally and mirrored through the user's private CloudKit database",
+    "backupCommand": null,
+    "restoreProcedure": "OPERATIONS.md#backup-and-restore",
+    "lastRestoreDrill": null
+  },
+  "recovery": {
+    "applicationNative": {
+      "status": "missing",
+      "procedure": null
+    },
+    "vaultHandoff": {
+      "status": "registered",
+      "applicationId": "lifetimer"
+    }
+  },
+  "credentials": [
+    {
+      "name": "CloudKit JS API token",
+      "purpose": "Browser-visible selector for the Life Timer CloudKit container",
+      "location": "Web/cloudkit-config.js; Allowed Origins managed in CloudKit Dashboard",
+      "scope": "Public identifier restricted to https://ayaksic.github.io; private records still require Apple authentication",
+      "lastRotated": null
+    },
+    {
+      "name": "Apple signing identity and provisioning profiles",
+      "purpose": "Sign native apps/extensions and authorize App Group/CloudKit capabilities",
+      "location": "Apple Developer account, Keychain, and Xcode-managed profiles",
+      "scope": "Life Timer bundle IDs, group.yaksic.lifetimer, and iCloud.yaksic.lifetimer",
+      "lastRotated": null
+    }
+  ],
+  "releaseIdentity": {
+    "versionSurface": "Native diagnostics show CFBundleShortVersionString/CFBundleVersion; web diagnostics show artifact version/build",
+    "commitSurface": "Native generated LifeTimerBuildInfo.plist bundle resource and generated Web/build-info.js artifact",
+    "environmentSurface": "Native and web diagnostics show runtime plus production CloudKit container",
+    "lastSyncSurface": "Native diagnostics sheet and expandable web sync diagnostics"
+  },
+  "security": {
+    "profile": "public-content-private-admin",
+    "posture": "exception-documented",
+    "asvsTarget": "ASVS-5.0-L1",
+    "exposure": "internet-public",
+    "dataClasses": ["personal"],
+    "tenancy": "single-user",
+    "authentication": {
+      "required": false,
+      "mechanism": "Public timer; Apple CloudKit authentication is required only for private settings sync",
+      "passwordStorage": "external-identity-provider",
+      "sessionProtection": "verified",
+      "rateLimiting": "documented",
+      "mfa": "optional",
+      "resetRecovery": "Apple account recovery; local timer remains functional without sync"
+    },
+    "authorization": {
+      "model": "CloudKit private database scopes records to the authenticated Apple user",
+      "defaultDeny": true,
+      "everyRequestChecked": true,
+      "tenantIsolation": "not-applicable"
+    },
+    "operatorAccess": {
+      "normalAccess": "none",
+      "supportAccess": "unavailable",
+      "breakGlass": "unavailable",
+      "auditLog": "missing"
+    },
+    "encryption": {
+      "transport": "tls-required",
+      "atRest": "platform-managed",
+      "backups": "encrypted",
+      "keyOwner": "Apple for CloudKit; Personal Data Vault owner for off-site archives"
+    },
+    "dataLifecycle": {
+      "retention": "Until the owner deletes local/CloudKit state or the Apple account/container",
+      "export": "missing",
+      "deletion": "documented"
+    },
+    "logging": {
+      "securityEvents": "missing",
+      "sensitiveValuesExcluded": true,
+      "retention": "Apple/GitHub platform-managed; application emits no private settings payload logs"
+    },
+    "environments": {
+      "productionDataInNonProduction": false,
+      "fixturePolicy": "synthetic-only"
+    },
+    "incidentResponse": {
+      "owner": "Life Timer owner",
+      "procedure": "OPERATIONS.md#security-model",
+      "credentialRotation": "docs/SECURITY_MODEL.md#incident-response"
+    },
+    "checks": {
+      "command": "node scripts/security-check.mjs --history && node scripts/check-contracts.mjs",
+      "currentTreeSecrets": "verified",
+      "historySecrets": "verified",
+      "privateData": "verified",
+      "dependencyAudit": "verified",
+      "authBoundary": "verified",
+      "tenantIsolation": "not-applicable",
+      "securityHeaders": "documented"
+    }
+  },
+  "baseline": {
+    "status": "complete",
+    "adoptedOn": "2026-07-19"
+  }
+}

@@ -73,6 +73,7 @@
 
   async function save(settings) {
     if (!database) return;
+    callbacks.setStatus("syncing");
     const response = await database.saveRecords(encode(settings));
     if (response.hasErrors) throw response.errors[0];
     fetchedRecord = response.records[0];

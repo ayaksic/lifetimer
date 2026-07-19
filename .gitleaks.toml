@@ -1,0 +1,12 @@
+title = "Life Timer Gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Browser-delivered CloudKit JS token in the dedicated public config"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+regexes = ['''^\s*apiToken:\s*"[A-Za-z0-9._-]{20,}",?\s*$''']
+paths = ['''^(?:cloudkit-config\.js|Web/cloudkit-config\.js)$''']

@@ -36,20 +36,6 @@
                ReferencedContainer = "container:lifetimer.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "49B36C992FAAB39C00292CF7"
-               BuildableName = "lifetimer.app"
-               BlueprintName = "lifetimer"
-               ReferencedContainer = "container:lifetimer.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

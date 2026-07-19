@@ -17,7 +17,9 @@ struct ContentView: View {
     private let crownNavigationLimit = 1_000.0
 
     @State private var settings = LifeTimerSettingsRepository.shared.current()
+    @State private var diagnostics = LifeTimerSettingsRepository.shared.diagnostics()
     @State private var doorbellPlayer = DoorbellPlayer()
+    @State private var showingDiagnostics = false
     @State private var pageIndex = 0
     @State private var crownValue = 0.0
     @State private var pendingCrownDetents = 0.0
@@ -37,6 +39,19 @@ struct ContentView: View {
             HandGestureAdvanceButton {
                 showNextPeriod()
             }
+
+            Button {
+                diagnostics = LifeTimerSettingsRepository.shared.diagnostics()
+                showingDiagnostics = true
+            } label: {
+                Image(systemName: diagnostics.isPending ? "icloud.and.arrow.up" : "info.circle")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(Color.lifeInk.opacity(0.58))
+                    .frame(width: 28, height: 28)
+            }
+            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .accessibilityLabel("Life Timer diagnostics")
         }
         .ignoresSafeArea()
         .focusable()
@@ -83,6 +98,7 @@ struct ContentView: View {
         .onAppear {
             LifeTimerSettingsRepository.shared.start()
             settings = LifeTimerSettingsRepository.shared.current()
+            diagnostics = LifeTimerSettingsRepository.shared.diagnostics()
             Task {
                 await LifeTimerSettingsRepository.shared.refreshFromCloud()
             }
@@ -101,7 +117,15 @@ struct ContentView: View {
             NotificationCenter.default.publisher(for: LifeTimerSettingsRepository.didChangeNotification)
         ) { _ in
             settings = LifeTimerSettingsRepository.shared.current()
+            diagnostics = LifeTimerSettingsRepository.shared.diagnostics()
             WidgetCenter.shared.reloadAllTimelines()
+        }
+        .sheet(isPresented: $showingDiagnostics) {
+            WatchDiagnosticsView(
+                identity: .current(),
+                diagnostics: diagnostics,
+                presentation: pages[pageIndex]
+            )
         }
     }
 
@@ -149,6 +173,49 @@ struct ContentView: View {
 
         pageIndex = index
         pendingCrownDetents = 0
+    }
+}
+
+private struct WatchDiagnosticsView: View {
+    let identity: LifeTimerReleaseIdentity
+    let diagnostics: LifeTimerSyncDiagnostics
+    let presentation: TimerPage
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Life Timer")
+                    .font(.headline)
+                diagnostic("Build", "\(identity.version) (\(identity.build))")
+                diagnostic("Commit", identity.commit)
+                diagnostic("Sync", diagnostics.status.rawValue)
+                diagnostic("Pending", diagnostics.isPending ? "Yes" : "No")
+                diagnostic("Revision", formatted(diagnostics.settingsRevision))
+                diagnostic("Last sync", formatted(diagnostics.lastSuccessfulSync))
+                diagnostic("CloudKit", "\(identity.cloudKitEnvironment) · \(identity.cloudKitContainer)")
+                diagnostic("App Group", LifeTimerSettingsStorage.appGroupIdentifier)
+                diagnostic("Local view", "\(presentation.period) / \(presentation.style.rawValue)")
+                Text("The local view is not synchronized. The Watch refreshes through CloudKit; no WatchConnectivity path is active.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func diagnostic(_ label: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(label.uppercased())
+                .font(.system(size: 9, weight: .bold))
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.caption2.monospaced())
+        }
+    }
+
+    private func formatted(_ date: Date?) -> String {
+        guard let date, date != .distantPast else { return "Never" }
+        return date.formatted(date: .numeric, time: .shortened)
     }
 }
 

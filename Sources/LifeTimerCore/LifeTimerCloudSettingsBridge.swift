@@ -2,7 +2,7 @@
 import CloudKit
 import Foundation
 
-public actor LifeTimerCloudSettingsBridge {
+public actor LifeTimerCloudSettingsBridge: LifeTimerCloudSettingsAdapter {
     public static let shared = LifeTimerCloudSettingsBridge()
 
     private let database: CKDatabase
@@ -12,45 +12,27 @@ public actor LifeTimerCloudSettingsBridge {
         database = CKContainer(identifier: containerIdentifier).privateCloudDatabase
     }
 
-    public func synchronize(repository: LifeTimerSettingsRepository) async {
-        let local = repository.current()
-
+    public func fetchSettings() async throws -> LifeTimerSettings? {
         do {
-            let record = try await database.record(for: recordID)
-            guard let remote = settings(from: record) else {
-                await save(local)
-                return
-            }
-
-            let resolved = repository.merge(remote)
-            if resolved.updatedAt > remote.updatedAt {
-                await save(resolved)
-            }
+            return settings(from: try await database.record(for: recordID))
         } catch let error as CKError where error.code == .unknownItem {
-            await save(local)
-        } catch {
-            // Keep the App Group cache authoritative while offline. A later
-            // foreground refresh retries CloudKit without blocking the timer.
+            return nil
         }
     }
 
-    public func save(_ settings: LifeTimerSettings) async {
+    public func saveSettings(_ settings: LifeTimerSettings) async throws {
+        let record: CKRecord
         do {
-            let record: CKRecord
-            do {
-                record = try await database.record(for: recordID)
-            } catch let error as CKError where error.code == .unknownItem {
-                record = CKRecord(recordType: LifeTimerSettingsStorage.cloudRecordType, recordID: recordID)
-            }
-
-            record["schemaVersion"] = Int64(settings.schemaVersion) as CKRecordValue
-            record["lifetimeStart"] = settings.lifetimeStart as CKRecordValue
-            record["unitPositionEnabled"] = Int64(settings.unitPositionEnabled ? 1 : 0) as CKRecordValue
-            record["updatedAt"] = settings.updatedAt as CKRecordValue
-            _ = try await database.save(record)
-        } catch {
-            // CloudKit retries happen on the next write or foreground refresh.
+            record = try await database.record(for: recordID)
+        } catch let error as CKError where error.code == .unknownItem {
+            record = CKRecord(recordType: LifeTimerSettingsStorage.cloudRecordType, recordID: recordID)
         }
+
+        record["schemaVersion"] = Int64(settings.schemaVersion) as CKRecordValue
+        record["lifetimeStart"] = settings.lifetimeStart as CKRecordValue
+        record["unitPositionEnabled"] = Int64(settings.unitPositionEnabled ? 1 : 0) as CKRecordValue
+        record["updatedAt"] = settings.updatedAt as CKRecordValue
+        _ = try await database.save(record)
     }
 
     private func settings(from record: CKRecord) -> LifeTimerSettings? {
