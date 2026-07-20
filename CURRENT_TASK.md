@@ -1,7 +1,7 @@
 # Current task: Life Timer Portfolio Operations baseline
 
-Status: complete locally and authorized for portfolio publication; production Pages verification is pending the push-triggered workflow
-Updated: 2026-07-19
+Status: complete and safe to archive with the documented GitHub Actions/Pages exceptions below
+Updated: 2026-07-20
 
 ## Goal
 
@@ -19,8 +19,10 @@ Complete missing Portfolio Operations baseline elements, preserve the prior Life
 
 - Branch: `main`
 - Starting commit: `648cc6b` (`Merge pull request #2 from ayaksic/agent/update-pages-actions`)
-- Remote: `origin/main` at the same commit when work began
-- Production commit/version: not inspected or changed by this task
+- Baseline repository state before this archival note: `e5d38df13d63c92cc8fdf211213213e52c1c9c93` (`Make GitHub verification opt-in`)
+- Remote at closure preparation: clean local `main` matched `origin/main` at `e5d38df13d63c92cc8fdf211213213e52c1c9c93`
+- Current production web identity: `5e83ab4fc55ae80ac152fe2e05c2a84a5c1050ef`, served over HTTPS
+- Changes after the live production commit are the GitHub verification workflow trigger policy and this archival record; no product source or generated web artifact changed.
 
 ## Files changed
 
@@ -49,14 +51,21 @@ Complete missing Portfolio Operations baseline elements, preserve the prior Life
 
 ## External status
 
-- Web deployment: not performed.
+- Repository publication: the baseline and this closure disposition are published on `main`; Git history is the immutable source for the closure commit identity.
+- Repository CI: the complete verification workflow passed for `5e83ab4fc55ae80ac152fe2e05c2a84a5c1050ef`. At current `HEAD`, that workflow is intentionally opt-in and was not rerun because the account has no GitHub Actions minutes until 2026-08-01.
+- Web deployment: the `e5d38df` Pages artifact assembled successfully, but GitHub rejected creation of the deployment with a transient HTTP 503. Production therefore remains on the verified `5e83ab4` artifact.
 - CloudKit production schema/data: not changed.
 - iPhone/Watch installation: not performed.
-- Git push/merge/repository creation or archival: not performed.
+- Physical-device CloudKit synchronization and Personal Data Vault restore: retained as separate, explicitly authorized acceptance work; neither is implied by local verification.
+- Repository creation or archival: not performed.
 
-## Next safe action
+## Archival disposition
 
-Publish the verified candidate through the normal repository workflow. Treat a workflow that cannot start because of account billing as an external exception, not a green check. After Pages completes, verify the live release identity, HTTPS headers, and CloudKit sign-in boundary without reading or changing private records.
+This task is safe to archive without consuming unavailable GitHub Actions minutes. The local full gate passed, the latest product-code commit has a green repository verification run and is the live Pages artifact, and the current repository-only delta changes CI triggering rather than application behavior.
+
+After GitHub Actions capacity returns on 2026-08-01, an optional separately authorized follow-up may manually run `Life Timer verification`, rerun `Deploy Life Timer`, and confirm that production reports the then-current authorized release commit. Until then, the HTTP 503 and deferred reruns are recorded external exceptions, not green checks.
+
+Device installation, owner-authenticated CloudKit convergence testing, and a Personal Data Vault restore drill remain device/account-specific acceptance checks. They are not required to close this baseline task and must not be inferred from simulator, fake-adapter, backup-manifest, or build evidence.
 
 ## Do not
 
