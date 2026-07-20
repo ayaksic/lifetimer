@@ -1,9 +1,7 @@
 name: Life Timer verification
 
+# Advisory verification is opt-in; the Pages deployment remains automatic.
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
 
 permissions:
