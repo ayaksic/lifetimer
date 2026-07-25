@@ -20,6 +20,9 @@ Do not deploy Pages, change CloudKit production schema/data, install on iPhone/W
 - [ ] Confirm CloudKit adapter tests use fakes and do not require or contact a live account.
 - [ ] Confirm shared fixture parity, settings schema, web asset manifest, and generated build identity pass drift checks.
 - [ ] Confirm App Group/iCloud production entitlements match across iPhone, Watch, and extensions.
+- [ ] Confirm the HealthKit entitlement remains on the iOS host only and the built app contains the sleep read usage description.
+- [ ] Confirm Family Controls is present on the iOS host and Screen Time report extension, while the extension has App Group access only—no HealthKit or CloudKit.
+- [ ] Confirm the ExtensionKit report is embedded in the app's `Extensions` directory, not `PlugIns`.
 - [ ] Confirm unsigned simulator builds pass for iPhone, iOS widget/Live Activity, Watch, and complication schemes.
 - [ ] Review the diff and security scan output; no credential/private-data value should be printed.
 - [ ] Require green clean-checkout CI before merge.
@@ -70,5 +73,8 @@ These cannot be proven by simulator builds:
 - [ ] Confirm App Group delivery from each host to its own extension surface.
 - [ ] Confirm Watch complication timelines refresh and deep links open hour/day flow pages.
 - [ ] Start/end the iPhone Live Activity and verify Lock Screen/Dynamic Island rendering through an hour boundary.
+- [ ] Enable the Health sleep overlay on the owner-authorized iPhone, compare day/week positions and asleep/in-bed totals with Health, then verify disabling it immediately clears the overlay.
+- [ ] Enable the Screen Time phone-use overlay, approve individual access, compare green aggregate duration with Settings > Screen Time, and verify disabling it immediately clears only the green layer.
+- [ ] Confirm the Screen Time host/report-extension provisioning profiles contain the Family Controls entitlement before calling device installation complete.
 - [ ] Confirm installed version/build/commit match the released source.
 - [ ] Check current Personal Data Vault health separately and perform a restore drill only under its runbook.

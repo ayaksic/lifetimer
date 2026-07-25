@@ -149,6 +149,97 @@ struct LifeTimerCoreTests {
         #expect(recoveredRepository.diagnostics().lastSuccessfulSync != nil)
     }
 
+    @Test("Overlay intervals merge by kind and clip without double counting")
+    func overlayIntervals() throws {
+        let start = Date(timeIntervalSince1970: 1_000)
+        let intervals = [
+            LifeTimerOverlayInterval(
+                kind: .inBed,
+                start: start,
+                end: start.addingTimeInterval(3_600)
+            ),
+            LifeTimerOverlayInterval(
+                kind: .inBed,
+                start: start.addingTimeInterval(1_800),
+                end: start.addingTimeInterval(5_400)
+            ),
+            LifeTimerOverlayInterval(
+                kind: .asleep,
+                start: start.addingTimeInterval(900),
+                end: start.addingTimeInterval(4_500)
+            ),
+        ]
+
+        let merged = LifeTimerOverlayInterval.merged(intervals)
+        #expect(merged.count == 2)
+        #expect(merged.first(where: { $0.kind == .inBed })?.duration == 5_400)
+        #expect(merged.first(where: { $0.kind == .asleep })?.duration == 3_600)
+
+        let clippedRange = DateInterval(
+            start: start.addingTimeInterval(1_800),
+            end: start.addingTimeInterval(3_600)
+        )
+        #expect(
+            LifeTimerOverlayInterval.totalDuration(
+                of: .inBed,
+                in: intervals,
+                clippedTo: clippedRange
+            ) == 1_800
+        )
+        #expect(
+            LifeTimerOverlayInterval.totalDuration(
+                of: .asleep,
+                in: intervals,
+                clippedTo: clippedRange
+            ) == 1_800
+        )
+    }
+
+    @Test("Grid date intervals align overlays with visible cells")
+    func gridDateIntervals() throws {
+        let timeZone = try #require(TimeZone(identifier: "America/New_York"))
+        let previousTimeZone = NSTimeZone.default
+        NSTimeZone.default = timeZone
+        defer { NSTimeZone.default = previousTimeZone }
+
+        let now = try localDate("2026-07-24T16:00:00-04:00", timeZone: timeZone)
+        let lifetimeStart = try localDate("1985-04-17T03:41:00-05:00", timeZone: timeZone)
+
+        let day = LifePeriod.day.gridDateIntervals(containing: now, lifetimeStart: lifetimeStart)
+        #expect(day.count == 24)
+        #expect(day.first?.start == LifePeriod.day.range(containing: now, lifetimeStart: lifetimeStart).start)
+        #expect(day.last?.end == LifePeriod.day.range(containing: now, lifetimeStart: lifetimeStart).end)
+
+        let year = LifePeriod.year.gridDateIntervals(containing: now, lifetimeStart: lifetimeStart)
+        #expect(year.count == 12)
+        #expect(LifePeriod.calendar.component(.month, from: year[6].start) == 7)
+
+        let lifetime = LifePeriod.lifetime.gridDateIntervals(containing: now, lifetimeStart: lifetimeStart)
+        #expect(lifetime.count == 80)
+        #expect(LifePeriod.calendar.component(.year, from: try #require(lifetime.first?.start)) == 1985)
+        #expect(LifePeriod.calendar.component(.year, from: try #require(lifetime.last?.start)) == 2064)
+    }
+
+    @Test("Screen Time usage buckets aggregate and clamp without inventing duration")
+    func usageBuckets() throws {
+        let start = Date(timeIntervalSince1970: 10_000)
+        let hour = DateInterval(start: start, duration: 3_600)
+        let nextHour = DateInterval(start: hour.end, duration: 3_600)
+
+        let buckets = LifeTimerUsageBucket.aggregated([
+            LifeTimerUsageBucket(dateInterval: hour, activeDuration: 1_200),
+            LifeTimerUsageBucket(dateInterval: hour, activeDuration: 3_000),
+            LifeTimerUsageBucket(dateInterval: nextHour, activeDuration: -50),
+        ])
+
+        #expect(buckets.count == 2)
+        #expect(buckets[0].activeDuration == 3_600)
+        #expect(buckets[0].representativeInterval?.start == hour.start)
+        #expect(buckets[0].representativeInterval?.end == hour.end)
+        #expect(buckets[1].activeDuration == 0)
+        #expect(buckets[1].representativeInterval == nil)
+    }
+
     private func localDate(_ value: String, timeZone: TimeZone) throws -> Date {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime]

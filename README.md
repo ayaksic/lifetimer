@@ -43,6 +43,20 @@ Native hosts cache `LifeTimerSettings` in App Group `group.yaksic.lifetimer`. Ea
 
 There is no WatchConnectivity implementation. Cross-device convergence depends on CloudKit availability and host refresh. `lifetimeStart` and `unitPositionEnabled` synchronize; current period/page and flow/grid choice remain local session presentation and are never uploaded.
 
+## Health sleep overlay
+
+The iPhone/iPad app can read HealthKit sleep-analysis samples and paint them into the current timer page. Time in bed uses light blue; actual sleep stages use deep blue and render over any overlapping in-bed interval. Turn the overlay on from Diagnostics. Life Timer requests read-only access at that moment, queries only the visible timer range through the present, and keeps the returned intervals in memory.
+
+The enable preference and rendered overlay are local presentation state. Sleep samples are never written, logged, added to the Life Timer CloudKit record, exposed to the web/Watch clients, or included in the App Group recovery handoff. An empty result can mean either no samples in the visible range or unavailable read access because HealthKit deliberately does not reveal read-denial status.
+
+## Screen Time phone-use overlay
+
+The iPhone/iPad app can also host Apple's Device Activity report extension over the timer. Enable `Show phone use` in Diagnostics to request individual Family Controls authorization. The green layer is restricted to iPhone activity and can be toggled independently from the blue HealthKit layer.
+
+Apple keeps the underlying Screen Time records inside the sandboxed report extension; the Life Timer host receives the rendered overlay rather than activity records. Shorter pages use hourly duration buckets, the year uses daily buckets, and lifetime uses weekly buckets. Screen Time does not provide exact session timestamps through this privacy-preserving report path, so green positions within each bucket are representative aggregate duration rather than a claim about the exact moment the phone was used.
+
+The report extension reads only the existing lifetime start from `group.yaksic.lifetimer` so lifetime grid cells align with the host. It has no HealthKit or CloudKit entitlement. Development installation and distribution require Apple's Family Controls entitlement approval for the host and report-extension bundle identifiers.
+
 The web app uses the same private CloudKit record through CloudKit JS. The production schema and API token are configured for `https://ayaksic.github.io`. Local file or localhost runs remain on-device. If the hosting origin changes, update the token's Allowed Origins entry in CloudKit Dashboard.
 
 If CloudKit is unavailable, the web app remains functional with local browser settings and reports `On device`.

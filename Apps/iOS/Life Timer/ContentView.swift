@@ -6,15 +6,20 @@
 //
 
 import AVFoundation
+import DeviceActivity
 import LifeTimerCore
 import SwiftUI
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
 
+    @StateObject private var screenTimeOverlay = ScreenTimeOverlay()
+    @StateObject private var sleepOverlay = HealthKitSleepOverlay()
     @State private var settings = LifeTimerSettingsRepository.shared.current()
     @State private var diagnostics = LifeTimerSettingsRepository.shared.diagnostics()
     @State private var pageIndex = 0
+    @State private var healthRefreshID = 0
+    @State private var screenTimeReferenceDate = Date()
     @State private var showingLifetimeEditor = false
     @State private var showingDiagnostics = false
     @State private var liveActivityIsRunning = false
@@ -33,12 +38,27 @@ struct ContentView: View {
 
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { timeline in
-            TimerFace(
-                page: pages[pageIndex],
-                now: timeline.date,
-                lifetimeStart: lifetimeStart,
-                unitPositionEnabled: unitPositionEnabled
-            )
+            ZStack {
+                TimerFace(
+                    page: pages[pageIndex],
+                    now: timeline.date,
+                    lifetimeStart: lifetimeStart,
+                    unitPositionEnabled: unitPositionEnabled,
+                    overlayIntervals: sleepOverlay.intervals
+                )
+
+                if screenTimeOverlay.isEnabled {
+                    DeviceActivityReport(
+                        .lifeTimerScreenTime(for: pages[pageIndex]),
+                        filter: screenTimeOverlay.filter(
+                            for: pages[pageIndex].period,
+                            now: screenTimeReferenceDate,
+                            lifetimeStart: lifetimeStart
+                        )
+                    )
+                    .allowsHitTesting(false)
+                }
+            }
         }
         .ignoresSafeArea()
         .persistentSystemOverlays(.hidden)
@@ -90,10 +110,12 @@ struct ContentView: View {
                 lifetimeStart: lifetimeStart,
                 resetAction: {
                     settings = LifeTimerSettingsRepository.shared.update(lifetimeStart: defaultLifetimeStart)
+                    screenTimeReferenceDate = Date()
                     showingLifetimeEditor = false
                 },
                 saveAction: { nextStart in
                     settings = LifeTimerSettingsRepository.shared.update(lifetimeStart: nextStart)
+                    screenTimeReferenceDate = Date()
                     showingLifetimeEditor = false
                 }
             )
@@ -104,7 +126,10 @@ struct ContentView: View {
             LifeTimerDiagnosticsView(
                 identity: .current(),
                 diagnostics: diagnostics,
-                presentation: pages[pageIndex]
+                presentation: pages[pageIndex],
+                lifetimeStart: lifetimeStart,
+                sleepOverlay: sleepOverlay,
+                screenTimeOverlay: screenTimeOverlay
             )
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
@@ -115,14 +140,34 @@ struct ContentView: View {
             diagnostics = LifeTimerSettingsRepository.shared.diagnostics()
             await monitorLiveActivity()
         }
+        .task(id: SleepOverlayQueryID(
+            pageID: pages[pageIndex].id,
+            lifetimeStart: lifetimeStart,
+            enabled: sleepOverlay.isEnabled,
+            refreshID: healthRefreshID
+        )) {
+            await sleepOverlay.refresh(
+                period: pages[pageIndex].period,
+                now: Date(),
+                lifetimeStart: lifetimeStart
+            )
+        }
         .onReceive(
             NotificationCenter.default.publisher(for: LifeTimerSettingsRepository.didChangeNotification)
         ) { _ in
             settings = LifeTimerSettingsRepository.shared.current()
             diagnostics = LifeTimerSettingsRepository.shared.diagnostics()
         }
+        .onChange(of: screenTimeOverlay.isEnabled) { _, enabled in
+            if enabled {
+                screenTimeReferenceDate = Date()
+            }
+        }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
+            healthRefreshID += 1
+            screenTimeReferenceDate = Date()
+            screenTimeOverlay.refreshAuthorizationStatus()
 
             Task {
                 await LifeTimerSettingsRepository.shared.refreshFromCloud()
@@ -150,10 +195,12 @@ struct ContentView: View {
 
     private func showNextPeriod() {
         pageIndex = wrappedIndex(pageIndex + 1)
+        screenTimeReferenceDate = Date()
     }
 
     private func showPreviousPeriod() {
         pageIndex = wrappedIndex(pageIndex - 1)
+        screenTimeReferenceDate = Date()
     }
 
     private func wrappedIndex(_ value: Int) -> Int {
@@ -201,10 +248,20 @@ struct ContentView: View {
     }
 }
 
+private struct SleepOverlayQueryID: Hashable {
+    let pageID: String
+    let lifetimeStart: Date
+    let enabled: Bool
+    let refreshID: Int
+}
+
 private struct LifeTimerDiagnosticsView: View {
     let identity: LifeTimerReleaseIdentity
     let diagnostics: LifeTimerSyncDiagnostics
     let presentation: TimerPage
+    let lifetimeStart: Date
+    @ObservedObject var sleepOverlay: HealthKitSleepOverlay
+    @ObservedObject var screenTimeOverlay: ScreenTimeOverlay
 
     var body: some View {
         NavigationStack {
@@ -236,6 +293,74 @@ private struct LifeTimerDiagnosticsView: View {
                     Text("Page and flow/grid selection stay on this device and are not synchronized.")
                         .foregroundStyle(.secondary)
                 }
+
+                Section("Health sleep overlay") {
+                    Toggle(
+                        "Show sleep data",
+                        isOn: Binding(
+                            get: { sleepOverlay.isEnabled },
+                            set: { enabled in
+                                Task {
+                                    await sleepOverlay.setEnabled(enabled)
+                                }
+                            }
+                        )
+                    )
+                    .disabled(!sleepOverlay.isAvailable || sleepOverlay.status == .loading)
+
+                    LabeledContent("State", value: sleepOverlay.statusLabel)
+
+                    if sleepOverlay.isEnabled {
+                        LabeledContent("Current page") {
+                            Text(sleepSummary)
+                                .monospacedDigit()
+                        }
+
+                        HStack(spacing: 16) {
+                            OverlayLegendItem(label: "In bed", color: .lifeInBed)
+                            OverlayLegendItem(label: "Asleep", color: .lifeAsleep)
+                        }
+                    }
+
+                    if let detail = sleepOverlay.statusDetail {
+                        Text(detail)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Text("Read-only HealthKit samples stay on this device and are not uploaded or synchronized. HealthKit does not reveal whether read access was denied.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+
+                Section("Screen Time overlay") {
+                    Toggle(
+                        "Show phone use",
+                        isOn: Binding(
+                            get: { screenTimeOverlay.isEnabled },
+                            set: { enabled in
+                                Task {
+                                    await screenTimeOverlay.setEnabled(enabled)
+                                }
+                            }
+                        )
+                    )
+                    .disabled(screenTimeOverlay.status == .requesting)
+
+                    LabeledContent("State", value: screenTimeOverlay.statusLabel)
+
+                    if screenTimeOverlay.isEnabled {
+                        OverlayLegendItem(label: "Phone use", color: .lifePhone)
+                    }
+
+                    if let detail = screenTimeOverlay.statusDetail {
+                        Text(detail)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Text("Apple keeps Screen Time records inside its report extension. Life Timer renders iPhone-only duration in green using hourly buckets for shorter pages, daily buckets for a year, and weekly buckets for a lifetime. Filled positions within each bucket are representative, not exact session times.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
             }
             .navigationTitle("Diagnostics")
         }
@@ -244,6 +369,38 @@ private struct LifeTimerDiagnosticsView: View {
     private func formatted(_ date: Date?) -> String {
         guard let date, date != .distantPast else { return "Never" }
         return date.formatted(date: .abbreviated, time: .standard)
+    }
+
+    private var sleepSummary: String {
+        "\(duration(sleepOverlay.asleepDuration)) asleep · \(duration(sleepOverlay.inBedDuration)) in bed"
+    }
+
+    private func duration(_ interval: TimeInterval) -> String {
+        let totalMinutes = max(0, Int(interval / 60))
+        let hours = totalMinutes / 60
+        let minutes = totalMinutes % 60
+
+        if hours == 0 {
+            return "\(minutes)m"
+        }
+        return minutes == 0 ? "\(hours)h" : "\(hours)h \(minutes)m"
+    }
+}
+
+private struct OverlayLegendItem: View {
+    let label: String
+    let color: Color
+
+    var body: some View {
+        Label {
+            Text(label)
+        } icon: {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(color)
+                .frame(width: 14, height: 14)
+        }
+        .font(.footnote.weight(.semibold))
+        .foregroundStyle(Color.lifeInk.opacity(0.72))
     }
 }
 
@@ -293,6 +450,7 @@ private struct TimerFace: View {
     let now: Date
     let lifetimeStart: Date
     let unitPositionEnabled: Bool
+    let overlayIntervals: [LifeTimerOverlayInterval]
 
     var body: some View {
         switch page.style {
@@ -301,14 +459,16 @@ private struct TimerFace: View {
                 period: page.period,
                 now: now,
                 lifetimeStart: lifetimeStart,
-                unitPositionEnabled: unitPositionEnabled
+                unitPositionEnabled: unitPositionEnabled,
+                overlayIntervals: overlayIntervals
             )
         case .grid:
             GridTimerFace(
                 period: page.period,
                 now: now,
                 lifetimeStart: lifetimeStart,
-                unitPositionEnabled: unitPositionEnabled
+                unitPositionEnabled: unitPositionEnabled,
+                overlayIntervals: overlayIntervals
             )
         }
     }
@@ -319,6 +479,7 @@ private struct FlowTimerFace: View {
     let now: Date
     let lifetimeStart: Date
     let unitPositionEnabled: Bool
+    let overlayIntervals: [LifeTimerOverlayInterval]
 
     var body: some View {
         GeometryReader { geometry in
@@ -326,6 +487,7 @@ private struct FlowTimerFace: View {
                 width: max(1, geometry.size.width.rounded(.down)),
                 height: max(1, geometry.size.height.rounded(.down))
             )
+            let overlays = GroupedOverlayIntervals(overlayIntervals)
             let progress = period.progress(at: now, lifetimeStart: lifetimeStart)
             let totalPixels = Int(size.width * size.height)
             let elapsedPixels = Int(floor(Double(totalPixels) * progress))
@@ -355,6 +517,12 @@ private struct FlowTimerFace: View {
                         )
                     }
 
+                    drawOverlayIntervals(
+                        overlays,
+                        in: period.range(containing: now, lifetimeStart: lifetimeStart),
+                        rect: CGRect(origin: .zero, size: size),
+                        context: &context
+                    )
                     drawLiveMarker(at: marker, size: size, in: &context)
                 }
 
@@ -374,12 +542,15 @@ private struct GridTimerFace: View {
     let now: Date
     let lifetimeStart: Date
     let unitPositionEnabled: Bool
+    let overlayIntervals: [LifeTimerOverlayInterval]
 
     var body: some View {
         GeometryReader { geometry in
+            let overlays = GroupedOverlayIntervals(overlayIntervals)
+
             ZStack {
                 Canvas { context, size in
-                    drawGrid(in: &context, size: size)
+                    drawGrid(overlays: overlays, in: &context, size: size)
                 }
 
                 TimerReadout(
@@ -392,11 +563,16 @@ private struct GridTimerFace: View {
         }
     }
 
-    private func drawGrid(in context: inout GraphicsContext, size: CGSize) {
+    private func drawGrid(
+        overlays: GroupedOverlayIntervals,
+        in context: inout GraphicsContext,
+        size: CGSize
+    ) {
         let grid = period.grid(containing: now)
         let segment = period.segment(at: now, lifetimeStart: lifetimeStart, totalSegments: grid.segments)
         let xEdges = makeEdges(size.width, count: grid.cols)
         let yEdges = makeEdges(size.height, count: grid.rows)
+        let gridDateIntervals = period.gridDateIntervals(containing: now, lifetimeStart: lifetimeStart)
         var liveMarkerPoint = CGPoint(x: size.width / 2, y: size.height / 2)
 
         context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(.lifeRemaining))
@@ -419,6 +595,15 @@ private struct GridTimerFace: View {
 
             if fillRange.showMarker {
                 liveMarkerPoint = marker
+            }
+
+            if index < gridDateIntervals.count {
+                drawOverlayIntervals(
+                    overlays,
+                    in: gridDateIntervals[index],
+                    rect: rect,
+                    context: &context
+                )
             }
         }
 
@@ -454,28 +639,17 @@ private struct GridTimerFace: View {
         let cellWidth = max(1, Int(rect.width.rounded(.down)))
         let cellHeight = max(1, Int(rect.height.rounded(.down)))
         let totalPixels = cellWidth * cellHeight
-        let startPixel = Int(floor(Double(totalPixels) * min(1, max(0, startProgress))))
         let endPixel = Int(floor(Double(totalPixels) * min(1, max(0, endProgress))))
         let livePixel = min(totalPixels - 1, max(0, endPixel))
-        var pixel = startPixel
 
-        while pixel < endPixel {
-            let row = pixel / cellWidth
-            let col = pixel % cellWidth
-            let rowEnd = min(endPixel, (row + 1) * cellWidth)
-
-            context.fill(
-                Path(CGRect(
-                    x: rect.minX + CGFloat(col),
-                    y: rect.minY + CGFloat(row),
-                    width: CGFloat(rowEnd - pixel),
-                    height: 1
-                )),
-                with: .color(.lifeElapsed)
-            )
-
-            pixel = rowEnd
-        }
+        fillLinearProgressRange(
+            in: rect,
+            startProgress: startProgress,
+            endProgress: endProgress,
+            color: .lifeElapsed,
+            includePartialEndPixel: false,
+            context: &context
+        )
 
         return CGPoint(
             x: rect.minX + CGFloat(livePixel % cellWidth),
@@ -671,6 +845,110 @@ private func drawLiveMarker(at point: CGPoint, size: CGSize, in context: inout G
     context.fill(Path(innerRect), with: .color(.lifeLive))
 }
 
+private func drawOverlayIntervals(
+    _ intervals: GroupedOverlayIntervals,
+    in dateRange: DateInterval,
+    rect: CGRect,
+    context: inout GraphicsContext
+) {
+    guard dateRange.duration > 0 else { return }
+
+    for kind in LifeTimerOverlayKind.allCases {
+        let color: Color = kind == .inBed ? .lifeInBed : .lifeAsleep
+
+        for interval in intervals.intersecting(kind, dateRange) {
+            guard let clipped = interval.clipped(to: dateRange) else { continue }
+
+            fillLinearProgressRange(
+                in: rect,
+                startProgress: clipped.start.timeIntervalSince(dateRange.start) / dateRange.duration,
+                endProgress: clipped.end.timeIntervalSince(dateRange.start) / dateRange.duration,
+                color: color,
+                includePartialEndPixel: true,
+                context: &context
+            )
+        }
+    }
+}
+
+private struct GroupedOverlayIntervals {
+    private let inBed: [LifeTimerOverlayInterval]
+    private let asleep: [LifeTimerOverlayInterval]
+
+    init(_ intervals: [LifeTimerOverlayInterval]) {
+        inBed = intervals.filter { $0.kind == .inBed }.sorted { $0.start < $1.start }
+        asleep = intervals.filter { $0.kind == .asleep }.sorted { $0.start < $1.start }
+    }
+
+    func intersecting(
+        _ kind: LifeTimerOverlayKind,
+        _ range: DateInterval
+    ) -> ArraySlice<LifeTimerOverlayInterval> {
+        let values = kind == .inBed ? inBed : asleep
+        guard !values.isEmpty else { return values[...] }
+
+        var lower = 0
+        var upper = values.count
+        while lower < upper {
+            let midpoint = (lower + upper) / 2
+            if values[midpoint].end <= range.start {
+                lower = midpoint + 1
+            } else {
+                upper = midpoint
+            }
+        }
+        let startIndex = lower
+
+        lower = startIndex
+        upper = values.count
+        while lower < upper {
+            let midpoint = (lower + upper) / 2
+            if values[midpoint].start < range.end {
+                lower = midpoint + 1
+            } else {
+                upper = midpoint
+            }
+        }
+
+        return values[startIndex..<lower]
+    }
+}
+
+private func fillLinearProgressRange(
+    in rect: CGRect,
+    startProgress: Double,
+    endProgress: Double,
+    color: Color,
+    includePartialEndPixel: Bool,
+    context: inout GraphicsContext
+) {
+    let width = max(1, Int(rect.width.rounded(.down)))
+    let height = max(1, Int(rect.height.rounded(.down)))
+    let totalPixels = width * height
+    let startPixel = Int(floor(Double(totalPixels) * min(1, max(0, startProgress))))
+    let scaledEnd = Double(totalPixels) * min(1, max(0, endProgress))
+    let endPixel = includePartialEndPixel ? Int(ceil(scaledEnd)) : Int(floor(scaledEnd))
+    var pixel = startPixel
+
+    while pixel < endPixel {
+        let row = pixel / width
+        let column = pixel % width
+        let rowEnd = min(endPixel, (row + 1) * width)
+
+        context.fill(
+            Path(CGRect(
+                x: rect.minX + CGFloat(column),
+                y: rect.minY + CGFloat(row),
+                width: CGFloat(rowEnd - pixel),
+                height: 1
+            )),
+            with: .color(color)
+        )
+
+        pixel = rowEnd
+    }
+}
+
 private func markerRect(center: CGPoint, length: CGFloat, size: CGSize) -> CGRect {
     CGRect(
         x: min(max(0, center.x - length / 2), max(0, size.width - length)),
@@ -683,6 +961,9 @@ private func markerRect(center: CGPoint, length: CGFloat, size: CGSize) -> CGRec
 extension Color {
     static let lifeElapsed = Color(red: 182.0 / 255.0, green: 106.0 / 255.0, blue: 95.0 / 255.0)
     static let lifeRemaining = Color(red: 251.0 / 255.0, green: 248.0 / 255.0, blue: 243.0 / 255.0)
+    static let lifeInBed = Color(red: 101.0 / 255.0, green: 185.0 / 255.0, blue: 220.0 / 255.0)
+    static let lifeAsleep = Color(red: 20.0 / 255.0, green: 99.0 / 255.0, blue: 140.0 / 255.0)
+    static let lifePhone = Color(red: 38.0 / 255.0, green: 166.0 / 255.0, blue: 91.0 / 255.0)
     static let lifeLive = Color(red: 215.0 / 255.0, green: 255.0 / 255.0, blue: 47.0 / 255.0)
     static let lifeInk = Color(red: 22.0 / 255.0, green: 19.0 / 255.0, blue: 18.0 / 255.0)
     static let lifeMuted = Color(red: 22.0 / 255.0, green: 19.0 / 255.0, blue: 18.0 / 255.0).opacity(0.62)

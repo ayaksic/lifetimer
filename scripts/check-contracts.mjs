@@ -12,6 +12,7 @@ const webCloud = read("Web/cloudkit-settings.js");
 const webIndex = read("Web/index.html");
 const cloudConfig = read("Web/cloudkit-config.js");
 const iOSProject = read("Apps/iOS/Life Timer.xcodeproj/project.pbxproj");
+const screenTimeExtensionInfo = read("Apps/iOS/Life Timer Screen Time Report/Info.plist");
 const watchProject = read("Apps/watchOS/lifetimer.xcodeproj/project.pbxproj");
 
 for (const [path, source] of [
@@ -75,13 +76,39 @@ const entitlementPaths = [
   "Apps/watchOS/lifetimer Watch App/lifetimer Watch App.entitlements",
   "Apps/watchOS/lifetimer Complication/lifetimer Complication.entitlements",
 ];
+const iOSHostEntitlementPath = "Apps/iOS/Life Timer/Life Timer.entitlements";
+let iOSHostEntitlement;
 for (const path of entitlementPaths) {
   const entitlement = JSON.parse(execFileSync("plutil", ["-convert", "json", "-o", "-", path], { encoding: "utf8" }));
   assert(entitlement["com.apple.developer.icloud-container-environment"] === "Production", `${path}: CloudKit must remain Production`);
   assert(equal(entitlement["com.apple.developer.icloud-container-identifiers"], [cloud.container]), `${path}: iCloud container drift`);
   assert(equal(entitlement["com.apple.security.application-groups"], [cache.appGroup]), `${path}: App Group drift`);
   assert(equal(entitlement["com.apple.developer.icloud-services"], ["CloudKit"]), `${path}: CloudKit service drift`);
+  if (path === iOSHostEntitlementPath) {
+    iOSHostEntitlement = entitlement;
+    assert(entitlement["com.apple.developer.healthkit"] === true, `${path}: HealthKit read capability missing`);
+  } else {
+    assert(entitlement["com.apple.developer.healthkit"] === undefined, `${path}: HealthKit must remain iOS-host-only`);
+  }
 }
+const screenTimeEntitlementPath = "Apps/iOS/Life Timer Screen Time Report/Life Timer Screen Time Report.entitlements";
+const screenTimeEntitlement = JSON.parse(
+  execFileSync("plutil", ["-convert", "json", "-o", "-", screenTimeEntitlementPath], { encoding: "utf8" })
+);
+assert(iOSHostEntitlement["com.apple.developer.family-controls"] === true, `${iOSHostEntitlementPath}: Family Controls capability missing`);
+assert(screenTimeEntitlement["com.apple.developer.family-controls"] === true, `${screenTimeEntitlementPath}: Family Controls capability missing`);
+assert(equal(screenTimeEntitlement["com.apple.security.application-groups"], [cache.appGroup]), `${screenTimeEntitlementPath}: App Group drift`);
+assert(screenTimeEntitlement["com.apple.developer.healthkit"] === undefined, `${screenTimeEntitlementPath}: HealthKit must remain host-only`);
+assert(screenTimeEntitlement["com.apple.developer.icloud-services"] === undefined, `${screenTimeEntitlementPath}: Screen Time extension must not access CloudKit`);
+assert(
+  screenTimeExtensionInfo.includes("com.apple.deviceactivityui.report-extension")
+    && iOSProject.includes("com.apple.product-type.extensionkit-extension"),
+  "Device Activity report extension contract missing"
+);
+assert(
+  /INFOPLIST_KEY_NSHealthShareUsageDescription = "[^"]*sleep[^"]*";/i.test(iOSProject),
+  "iOS HealthKit sleep read usage description missing"
+);
 
 for (const project of [iOSProject, watchProject]) {
   const versions = [...project.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map((match) => match[1].trim());

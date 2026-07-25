@@ -12,7 +12,8 @@
   "clients": [
     { "name": "LifeTimerCore", "platform": "Swift package", "role": "Shared timer behavior, settings contract, CloudKit reconciliation, and diagnostics" },
     { "name": "Life Timer web", "platform": "Static HTML and JavaScript", "role": "Browser timer with local fallback and private CloudKit settings sync" },
-    { "name": "Life Timer", "platform": "iOS/iPadOS", "role": "Native host UI and Live Activity control" },
+    { "name": "Life Timer", "platform": "iOS/iPadOS", "role": "Native host UI, local read-only HealthKit sleep overlay, Screen Time report host, and Live Activity control" },
+    { "name": "Life Timer Screen Time Report", "platform": "iOS ExtensionKit", "role": "Sandboxed iPhone activity-duration overlay renderer" },
     { "name": "Life Timer WidgetsExtension", "platform": "iOS WidgetKit/ActivityKit", "role": "Hour Live Activity and Dynamic Island presentation" },
     { "name": "Life Timer Watch App", "platform": "watchOS", "role": "Native Watch host UI and CloudKit refresh" },
     { "name": "Life Timer complication", "platform": "watchOS WidgetKit", "role": "Local hour/day complication timelines" }
@@ -35,6 +36,18 @@
       "authority": "Each client session",
       "consumers": ["Current client only"],
       "conflictRule": "Never synchronized unless a future versioned contract explicitly adds presentation state"
+    },
+    {
+      "concept": "HealthKit sleep overlay",
+      "authority": "Owner-authorized HealthKit sleep-analysis samples on the iPhone or iPad",
+      "consumers": ["iPhone/iPad host only"],
+      "conflictRule": "Read-only visible-range query; merged in memory by category; never synchronized, logged, or backed up by Life Timer"
+    },
+    {
+      "concept": "Screen Time phone-use overlay",
+      "authority": "Owner-authorized Apple Device Activity report data",
+      "consumers": ["Life Timer Screen Time report extension only"],
+      "conflictRule": "iPhone-only aggregate buckets rendered inside the sandboxed extension; host receives no activity records; local enable preference is never synchronized"
     }
   ],
   "environments": [
@@ -50,8 +63,8 @@
     "verifyProduction": null
   },
   "data": {
-    "classification": "private personal lifetime settings",
-    "authoritativeStore": "Newest timestamped settings revision cached locally and mirrored through the user's private CloudKit database",
+    "classification": "private personal lifetime settings, transient HealthKit sleep data, and sandboxed Screen Time activity",
+    "authoritativeStore": "Newest timestamped lifetime settings revision cached locally and mirrored through the user's private CloudKit database; HealthKit remains authoritative for sleep and Apple Device Activity remains authoritative inside the Screen Time report extension",
     "backupCommand": null,
     "restoreProcedure": "OPERATIONS.md#backup-and-restore",
     "lastRestoreDrill": null
@@ -78,7 +91,7 @@
       "name": "Apple signing identity and provisioning profiles",
       "purpose": "Sign native apps/extensions and authorize App Group/CloudKit capabilities",
       "location": "Apple Developer account, Keychain, and Xcode-managed profiles",
-      "scope": "Life Timer bundle IDs, group.yaksic.lifetimer, and iCloud.yaksic.lifetimer",
+      "scope": "Life Timer bundle IDs, Family Controls host/report extension, group.yaksic.lifetimer, and iCloud.yaksic.lifetimer",
       "lastRotated": null
     }
   ],

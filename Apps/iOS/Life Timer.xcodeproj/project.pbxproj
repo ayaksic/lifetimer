@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		4C0000010000000000000001 /* LifeTimerCore in Frameworks */ = {isa = PBXBuildFile; productRef = 4C0000010000000000000011 /* LifeTimerCore */; };
 		4C0000010000000000000002 /* LifeTimerCore in Frameworks */ = {isa = PBXBuildFile; productRef = 4C0000010000000000000011 /* LifeTimerCore */; };
+		5C1000010000000000000001 /* LifeTimerCore in Frameworks */ = {isa = PBXBuildFile; productRef = 4C0000010000000000000011 /* LifeTimerCore */; };
+		5C1000010000000000000002 /* Life Timer Screen Time Report.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = 5C1000010000000000000010 /* Life Timer Screen Time Report.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		498E8EE92FAAEE0500CF5723 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 498E8EE82FAAEE0500CF5723 /* WidgetKit.framework */; };
 		498E8EEB2FAAEE0500CF5723 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 498E8EEA2FAAEE0500CF5723 /* SwiftUI.framework */; };
 		498E8EFA2FAAEE0600CF5723 /* Life Timer WidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 498E8EE62FAAEE0500CF5723 /* Life Timer WidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -36,6 +38,13 @@
 			remoteGlobalIDString = 498E8EE52FAAEE0500CF5723;
 			remoteInfo = "Life Timer WidgetsExtension";
 		};
+		5C1000010000000000000011 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 498E8EA82FAAECEC00CF5723 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5C1000010000000000000020;
+			remoteInfo = "Life Timer Screen Time Report";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -50,6 +59,17 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5C1000010000000000000015 /* Embed ExtensionKit Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Extensions";
+			dstSubfolderSpec = 16;
+			files = (
+				5C1000010000000000000002 /* Life Timer Screen Time Report.appex in Embed ExtensionKit Extensions */,
+			);
+			name = "Embed ExtensionKit Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -59,6 +79,7 @@
 		498E8EE62FAAEE0500CF5723 /* Life Timer WidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Life Timer WidgetsExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		498E8EE82FAAEE0500CF5723 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		498E8EEA2FAAEE0500CF5723 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		5C1000010000000000000010 /* Life Timer Screen Time Report.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Life Timer Screen Time Report.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -68,6 +89,13 @@
 				Info.plist,
 			);
 			target = 498E8EE52FAAEE0500CF5723 /* Life Timer WidgetsExtension */;
+		};
+		5C1000010000000000000012 /* Exceptions for "Life Timer Screen Time Report" folder in "Life Timer Screen Time Report" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 5C1000010000000000000020 /* Life Timer Screen Time Report */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -93,6 +121,14 @@
 				498E8EFB2FAAEE0600CF5723 /* Exceptions for "Life Timer Widgets" folder in "Life Timer WidgetsExtension" target */,
 			);
 			path = "Life Timer Widgets";
+			sourceTree = "<group>";
+		};
+		5C1000010000000000000013 /* Life Timer Screen Time Report */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5C1000010000000000000012 /* Exceptions for "Life Timer Screen Time Report" folder in "Life Timer Screen Time Report" target */,
+			);
+			path = "Life Timer Screen Time Report";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -130,6 +166,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5C1000010000000000000022 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5C1000010000000000000001 /* LifeTimerCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -140,6 +184,7 @@
 				498E8EC02FAAECED00CF5723 /* Life TimerTests */,
 				498E8ECA2FAAECED00CF5723 /* Life TimerUITests */,
 				498E8EEC2FAAEE0500CF5723 /* Life Timer Widgets */,
+				5C1000010000000000000013 /* Life Timer Screen Time Report */,
 				498E8EE72FAAEE0500CF5723 /* Frameworks */,
 				498E8EB12FAAECEC00CF5723 /* Products */,
 			);
@@ -152,6 +197,7 @@
 				498E8EBD2FAAECED00CF5723 /* Life TimerTests.xctest */,
 				498E8EC72FAAECED00CF5723 /* Life TimerUITests.xctest */,
 				498E8EE62FAAEE0500CF5723 /* Life Timer WidgetsExtension.appex */,
+				5C1000010000000000000010 /* Life Timer Screen Time Report.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -176,12 +222,14 @@
 				498E8EAD2FAAECEC00CF5723 /* Frameworks */,
 				498E8EAE2FAAECEC00CF5723 /* Resources */,
 				498E8EFF2FAAEE0600CF5723 /* Embed Foundation Extensions */,
+				5C1000010000000000000015 /* Embed ExtensionKit Extensions */,
 				4C0000010000000000000021 /* Embed Life Timer Build Info */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				498E8EF92FAAEE0600CF5723 /* PBXTargetDependency */,
+				5C1000010000000000000014 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				498E8EB22FAAECEC00CF5723 /* Life Timer */,
@@ -263,6 +311,29 @@
 			productReference = 498E8EE62FAAEE0500CF5723 /* Life Timer WidgetsExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		5C1000010000000000000020 /* Life Timer Screen Time Report */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5C1000010000000000000026 /* Build configuration list for PBXNativeTarget "Life Timer Screen Time Report" */;
+			buildPhases = (
+				5C1000010000000000000021 /* Sources */,
+				5C1000010000000000000022 /* Frameworks */,
+				5C1000010000000000000023 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				5C1000010000000000000013 /* Life Timer Screen Time Report */,
+			);
+			name = "Life Timer Screen Time Report";
+			packageProductDependencies = (
+				4C0000010000000000000011 /* LifeTimerCore */,
+			);
+			productName = "Life Timer Screen Time Report";
+			productReference = 5C1000010000000000000010 /* Life Timer Screen Time Report.appex */;
+			productType = "com.apple.product-type.extensionkit-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -275,6 +346,14 @@
 				TargetAttributes = {
 					498E8EAF2FAAECEC00CF5723 = {
 						CreatedOnToolsVersion = 26.4.1;
+						SystemCapabilities = {
+							com.apple.HealthKit = {
+								enabled = 1;
+							};
+							com.apple.FamilyControls = {
+								enabled = 1;
+							};
+						};
 					};
 					498E8EBC2FAAECED00CF5723 = {
 						CreatedOnToolsVersion = 26.4.1;
@@ -286,6 +365,14 @@
 					};
 					498E8EE52FAAEE0500CF5723 = {
 						CreatedOnToolsVersion = 26.4.1;
+					};
+					5C1000010000000000000020 = {
+						CreatedOnToolsVersion = 26.4.1;
+						SystemCapabilities = {
+							com.apple.FamilyControls = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -310,6 +397,7 @@
 				498E8EBC2FAAECED00CF5723 /* Life TimerTests */,
 				498E8EC62FAAECED00CF5723 /* Life TimerUITests */,
 				498E8EE52FAAEE0500CF5723 /* Life Timer WidgetsExtension */,
+				5C1000010000000000000020 /* Life Timer Screen Time Report */,
 			);
 		};
 /* End PBXProject section */
@@ -337,6 +425,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		498E8EE42FAAEE0500CF5723 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5C1000010000000000000023 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -396,6 +491,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5C1000010000000000000021 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -413,6 +515,11 @@
 			isa = PBXTargetDependency;
 			target = 498E8EE52FAAEE0500CF5723 /* Life Timer WidgetsExtension */;
 			targetProxy = 498E8EF82FAAEE0600CF5723 /* PBXContainerItemProxy */;
+		};
+		5C1000010000000000000014 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5C1000010000000000000020 /* Life Timer Screen Time Report */;
+			targetProxy = 5C1000010000000000000011 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -550,6 +657,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Life Timer reads sleep analysis to overlay time in bed and asleep on your timer.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -586,6 +694,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Life Timer reads sleep analysis to overlay time in bed and asleep on your timer.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_NSSupportsLiveActivitiesFrequentUpdates = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -756,6 +865,66 @@
 			};
 			name = Release;
 		};
+		5C1000010000000000000024 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "Life Timer Screen Time Report/Life Timer Screen Time Report.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = J5UXQQS99D;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Life Timer Screen Time Report/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Life Timer Screen Time";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "yaksic.Life-Timer.Screen-Time-Report";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		5C1000010000000000000025 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "Life Timer Screen Time Report/Life Timer Screen Time Report.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = J5UXQQS99D;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Life Timer Screen Time Report/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Life Timer Screen Time";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "yaksic.Life-Timer.Screen-Time-Report";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -800,6 +969,15 @@
 			buildConfigurations = (
 				498E8EFD2FAAEE0600CF5723 /* Debug */,
 				498E8EFE2FAAEE0600CF5723 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5C1000010000000000000026 /* Build configuration list for PBXNativeTarget "Life Timer Screen Time Report" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5C1000010000000000000024 /* Debug */,
+				5C1000010000000000000025 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
