@@ -24,7 +24,8 @@ Add independently controlled overlays to the iPhone/iPad app: HealthKit time in 
 - The report extension reads the existing lifetime start from the shared App Group only to align lifetime grid cells. It has no HealthKit or CloudKit entitlement.
 - Screen Time supplies aggregate screen-on duration per reporting bucket, not exact session timestamps. A soft, sparse green hatch spans only elapsed bucket time, with density representing duration without inventing exact placement or painting the future.
 - HealthKit sleep and Screen Time screen-on records are independent. Green may overlap blue when some screen-on duration was reported within the same bucket; it does not claim continuous phone use across that interval.
-- A host-owned transparent interaction layer remains above Apple's report view so page swipes, double taps, and long presses continue to work while the overlay is enabled.
+- A compact Screen badge shows reported screen-on duration divided by elapsed time represented on the current page.
+- A host-owned minimally rendered interaction layer remains above Apple's report view so iOS cannot discard its hit-testing surface and page swipes, double taps, and long presses continue to work while the overlay is enabled.
 - Only the two local enable preferences persist. Neither overlay is added to the synchronized Life Timer settings contract.
 
 ## Verification target

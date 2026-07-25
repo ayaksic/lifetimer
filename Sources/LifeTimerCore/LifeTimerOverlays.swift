@@ -92,6 +92,39 @@ public struct LifeTimerUsageBucket: Equatable, Sendable {
         return min(1, max(0, activeDuration / observedDuration))
     }
 
+    public func estimatedActiveDuration(
+        in range: DateInterval,
+        through cutoff: Date
+    ) -> TimeInterval {
+        let observedEnd = min(dateInterval.end, cutoff)
+        let observedDuration = observedEnd.timeIntervalSince(dateInterval.start)
+        guard observedDuration > 0 else { return 0 }
+
+        let overlapStart = max(dateInterval.start, range.start)
+        let overlapEnd = min(observedEnd, range.end)
+        let overlapDuration = overlapEnd.timeIntervalSince(overlapStart)
+        guard overlapDuration > 0 else { return 0 }
+
+        let observedActiveDuration = min(activeDuration, observedDuration)
+        return observedActiveDuration * (overlapDuration / observedDuration)
+    }
+
+    public static func representedActivityFraction(
+        in buckets: [LifeTimerUsageBucket],
+        range: DateInterval,
+        through cutoff: Date
+    ) -> Double {
+        let representedEnd = min(range.end, cutoff)
+        let representedDuration = representedEnd.timeIntervalSince(range.start)
+        guard representedDuration > 0 else { return 0 }
+
+        let activeDuration = aggregated(buckets).reduce(0) { total, bucket in
+            total + bucket.estimatedActiveDuration(in: range, through: cutoff)
+        }
+
+        return min(1, max(0, activeDuration / representedDuration))
+    }
+
     public static func aggregated(_ buckets: [LifeTimerUsageBucket]) -> [LifeTimerUsageBucket] {
         struct BucketKey: Hashable {
             let start: Date

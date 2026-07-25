@@ -252,6 +252,28 @@ struct LifeTimerCoreTests {
                 through: hour.start.addingTimeInterval(-1)
             ) == 0
         )
+
+        let representedFraction = LifeTimerUsageBucket.representedActivityFraction(
+            in: [
+                LifeTimerUsageBucket(dateInterval: hour, activeDuration: 600),
+                LifeTimerUsageBucket(dateInterval: nextHour, activeDuration: 300),
+            ],
+            range: DateInterval(start: hour.start, end: nextHour.end),
+            through: hour.end.addingTimeInterval(1_800)
+        )
+        #expect(abs(representedFraction - (900.0 / 5_400.0)) < 0.000_001)
+
+        let clippedFraction = LifeTimerUsageBucket.representedActivityFraction(
+            in: [
+                LifeTimerUsageBucket(dateInterval: hour, activeDuration: 1_200),
+            ],
+            range: DateInterval(
+                start: hour.start.addingTimeInterval(1_800),
+                end: hour.end
+            ),
+            through: hour.end
+        )
+        #expect(abs(clippedFraction - (600.0 / 1_800.0)) < 0.000_001)
     }
 
     private func localDate(_ value: String, timeZone: TimeZone) throws -> Date {

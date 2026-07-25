@@ -111,7 +111,7 @@ assert(
   "iOS HealthKit sleep read usage description missing"
 );
 assert(
-  /Color\.clear[\s\S]*?\.contentShape\(Rectangle\(\)\)[\s\S]*?\.gesture\(swipeGesture\)/.test(iOSContentView),
+  /Rectangle\(\)[\s\S]*?\.fill\(Color\.black\.opacity\(0\.001\)\)[\s\S]*?\.contentShape\(Rectangle\(\)\)[\s\S]*?\.gesture\(swipeGesture\)[\s\S]*?\.zIndex\(100\)/.test(iOSContentView),
   "iOS timer interaction layer must remain above the Screen Time report"
 );
 

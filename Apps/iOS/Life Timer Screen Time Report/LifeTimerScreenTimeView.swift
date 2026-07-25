@@ -1,3 +1,4 @@
+import Foundation
 import LifeTimerCore
 import SwiftUI
 
@@ -7,13 +8,43 @@ struct LifeTimerScreenTimeView: View {
     let style: TimerPageStyle
 
     var body: some View {
-        GeometryReader { geometry in
-            Canvas { context, size in
-                drawUsage(in: &context, size: size)
+        ZStack(alignment: .topTrailing) {
+            GeometryReader { geometry in
+                Canvas { context, size in
+                    drawUsage(in: &context, size: size)
+                }
+                .accessibilityHidden(true)
             }
+
+            Text(screenOnPercentageLabel)
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(Color.lifeInk)
+                .padding(.horizontal, 9)
+                .padding(.vertical, 6)
+                .background(Color.lifeRemaining.opacity(0.88), in: Capsule())
+                .overlay {
+                    Capsule()
+                        .stroke(Color.lifePhone.opacity(0.72), lineWidth: 1)
+                }
+                .padding(.top, 8)
+                .padding(.trailing, 12)
+                .accessibilityLabel("Screen-on time \(screenOnPercentageLabel)")
         }
         .background(Color.clear)
-        .accessibilityHidden(true)
+    }
+
+    private var screenOnPercentageLabel: String {
+        let representedRange = period.range(
+            containing: configuration.referenceDate,
+            lifetimeStart: configuration.lifetimeStart
+        )
+        let fraction = LifeTimerUsageBucket.representedActivityFraction(
+            in: configuration.buckets,
+            range: representedRange,
+            through: configuration.referenceDate
+        )
+        return String(format: "SCREEN %.1f%%", fraction * 100)
     }
 
     private func drawUsage(in context: inout GraphicsContext, size: CGSize) {
@@ -170,6 +201,16 @@ struct LifeTimerScreenTimeView: View {
 }
 
 private extension Color {
+    static let lifeRemaining = Color(
+        red: 251.0 / 255.0,
+        green: 248.0 / 255.0,
+        blue: 243.0 / 255.0
+    )
+    static let lifeInk = Color(
+        red: 22.0 / 255.0,
+        green: 19.0 / 255.0,
+        blue: 18.0 / 255.0
+    )
     static let lifePhone = Color(
         red: 38.0 / 255.0,
         green: 166.0 / 255.0,
