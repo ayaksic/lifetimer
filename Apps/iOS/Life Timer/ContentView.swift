@@ -106,6 +106,39 @@ struct ContentView: View {
             .padding(.top, 8)
             .accessibilityLabel("Life Timer diagnostics")
         }
+        .overlay(alignment: .topTrailing) {
+            HStack(spacing: 6) {
+                OverlayQuickToggle(
+                    title: "Sleep",
+                    systemImage: "bed.double.fill",
+                    color: .lifeAsleep,
+                    isOn: sleepOverlay.isEnabled,
+                    isAvailable: sleepOverlay.isAvailable
+                ) {
+                    Task {
+                        await sleepOverlay.setEnabled(!sleepOverlay.isEnabled)
+                    }
+                }
+
+                OverlayQuickToggle(
+                    title: "Screen",
+                    systemImage: "iphone",
+                    color: .lifePhone,
+                    isOn: screenTimeOverlay.isEnabled,
+                    isAvailable: screenTimeOverlay.status != .requesting
+                ) {
+                    let enabled = !screenTimeOverlay.isEnabled
+                    if enabled {
+                        LifeTimerScreenTimePresentationStore.save(pages[pageIndex])
+                    }
+                    Task {
+                        await screenTimeOverlay.setEnabled(enabled)
+                    }
+                }
+            }
+            .padding(.trailing, 12)
+            .padding(.top, 8)
+        }
         .safeAreaInset(edge: .bottom) {
             if pages[pageIndex].period == .hour && pages[pageIndex].style == .flow {
                 LiveActivityBar(
@@ -484,6 +517,48 @@ private final class LifeTimerSoundPlayer {
         guard let player = players[sound] else { return }
         player.currentTime = 0
         player.play()
+    }
+}
+
+private struct OverlayQuickToggle: View {
+    let title: String
+    let systemImage: String
+    let color: Color
+    let isOn: Bool
+    let isAvailable: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 11, weight: .bold))
+
+                Text(title)
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+            }
+            .foregroundStyle(isOn ? Color.lifeRemaining : Color.lifeInk.opacity(0.72))
+            .padding(.horizontal, 9)
+            .frame(height: 34)
+            .background(
+                isOn ? color.opacity(0.94) : Color.lifeRemaining.opacity(0.82),
+                in: Capsule()
+            )
+            .overlay {
+                Capsule()
+                    .stroke(
+                        isOn ? Color.lifeRemaining.opacity(0.78) : color.opacity(0.58),
+                        lineWidth: 1
+                    )
+            }
+            .shadow(color: Color.lifeInk.opacity(0.12), radius: 4, y: 1)
+        }
+        .buttonStyle(.plain)
+        .disabled(!isAvailable)
+        .opacity(isAvailable ? 1 : 0.45)
+        .accessibilityLabel("\(title) overlay")
+        .accessibilityValue(isOn ? "On" : "Off")
+        .accessibilityHint("Double tap to turn \(isOn ? "off" : "on")")
     }
 }
 

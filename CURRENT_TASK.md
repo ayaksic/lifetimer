@@ -10,6 +10,7 @@ Add independently controlled overlays to the iPhone/iPad app: HealthKit time in 
 ## Implemented behavior
 
 - Diagnostics has separate local `Show sleep data` and `Show screen-on time` toggles.
+- The main timer has compact, labeled `Sleep` and `Screen` controls at top-right so routine overlay changes do not require opening Diagnostics.
 - The HealthKit toggle requests read-only sleep-analysis access. In-bed intervals render light blue and asleep intervals render deep blue.
 - The Screen Time toggle requests individual Family Controls authorization and hosts an Apple Device Activity report extension over the timer.
 - Screen Time is filtered to iPhone devices. It uses hourly duration buckets for hour/day/week/month, daily buckets for year, and weekly buckets for lifetime.

@@ -45,13 +45,15 @@ There is no WatchConnectivity implementation. Cross-device convergence depends o
 
 ## Health sleep overlay
 
-The iPhone/iPad app can read HealthKit sleep-analysis samples and paint them into the current timer page. Time in bed uses light blue; actual sleep stages use deep blue and render over any overlapping in-bed interval. Turn the overlay on from Diagnostics. Life Timer requests read-only access at that moment, queries only the visible timer range through the present, and keeps the returned intervals in memory.
+The iPhone/iPad app can read HealthKit sleep-analysis samples and paint them into the current timer page. Time in bed uses light blue; actual sleep stages use deep blue and render over any overlapping in-bed interval. Turn the overlay on from the main timer or Diagnostics. Life Timer requests read-only access at that moment, queries only the visible timer range through the present, and keeps the returned intervals in memory.
 
 The enable preference and rendered overlay are local presentation state. Sleep samples are never written, logged, added to the Life Timer CloudKit record, exposed to the web/Watch clients, or included in the App Group recovery handoff. An empty result can mean either no samples in the visible range or unavailable read access because HealthKit deliberately does not reveal read-denial status.
 
+Compact `Sleep` and `Screen` controls remain visible at the top-right of the main timer. A colored control is on and a warm-white control is off. Diagnostics retains the same controls and detailed status for troubleshooting.
+
 ## Screen Time screen-on overlay
 
-The iPhone/iPad app can also host Apple's Device Activity report extension over the timer. Enable `Show screen-on time` in Diagnostics to request individual Family Controls authorization. The green layer is restricted to iPhone activity and can be toggled independently from the blue HealthKit layer.
+The iPhone/iPad app can also host Apple's Device Activity report extension over the timer. Enable `Screen` on the main timer or `Show screen-on time` in Diagnostics to request individual Family Controls authorization. The green layer is restricted to iPhone activity and can be toggled independently from the blue HealthKit layer.
 
 Apple keeps the underlying Screen Time records inside the sandboxed report extension; the Life Timer host receives the rendered overlay rather than activity records. Shorter pages use hourly duration buckets, the year uses daily buckets, and lifetime uses weekly buckets. A soft green hatch spans only the elapsed portion of each bucket, with density representing its aggregate screen-on duration. A compact `SCREEN` badge reports screen-on duration as a percentage of elapsed time represented by the current page. Screen Time does not provide exact session timestamps through this privacy-preserving report path, so the hatch deliberately avoids claiming exactly when within the bucket the screen was on and never paints future time. The HealthKit and Screen Time records are independent, so green can overlap blue sleep; that overlap means some screen-on time was reported within the same bucket, not continuous use across the whole hatched area.
 

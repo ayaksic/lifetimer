@@ -33,7 +33,7 @@ struct LifeTimerScreenTimeView: View {
                     Capsule()
                         .stroke(Color.lifePhone.opacity(0.72), lineWidth: 1)
                 }
-                .padding(.top, 8)
+                .padding(.top, 50)
                 .padding(.trailing, 12)
                 .accessibilityLabel("Screen-on time \(screenOnPercentageLabel)")
         }

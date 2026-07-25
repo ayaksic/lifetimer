@@ -121,6 +121,11 @@ assert(
   "Screen Time report identity must change with page and filter inputs"
 );
 assert(
+  /OverlayQuickToggle\(\s*title:\s*"Sleep"[\s\S]*?sleepOverlay\.setEnabled/.test(iOSContentView)
+    && /OverlayQuickToggle\(\s*title:\s*"Screen"[\s\S]*?screenTimeOverlay\.setEnabled/.test(iOSContentView),
+  "main timer must expose direct Sleep and Screen overlay controls"
+);
+assert(
   (screenTimeExtensionRoot.match(/LifeTimerScreenTimeReport\(\)/g) ?? []).length === 1
     && screenTimeReport.includes('Self("life-timer-screen-time")')
     && !screenTimeReport.includes("contextName"),
