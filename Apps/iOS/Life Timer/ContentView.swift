@@ -36,9 +36,24 @@ struct ContentView: View {
         settings.unitPositionEnabled
     }
 
+    private var screenTimeTimerInterval: TimeInterval {
+        switch pages[pageIndex].period {
+        case .hour, .day:
+            1.0 / 5.0
+        case .week, .month, .year, .lifetime:
+            1.0
+        }
+    }
+
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { timeline in
-            ZStack {
+        ZStack {
+            TimelineView(
+                .animation(
+                    minimumInterval: screenTimeOverlay.isEnabled
+                        ? screenTimeTimerInterval
+                        : 1.0 / 30.0
+                )
+            ) { timeline in
                 TimerFace(
                     page: pages[pageIndex],
                     now: timeline.date,
@@ -46,25 +61,19 @@ struct ContentView: View {
                     unitPositionEnabled: unitPositionEnabled,
                     overlayIntervals: sleepOverlay.intervals
                 )
+            }
 
-                if screenTimeOverlay.isEnabled {
-                    DeviceActivityReport(
-                        .lifeTimerScreenTime,
-                        filter: screenTimeOverlay.filter(
-                            for: pages[pageIndex].period,
-                            now: screenTimeReferenceDate,
-                            lifetimeStart: lifetimeStart
-                        )
+            if screenTimeOverlay.isEnabled {
+                ScreenTimeReportLayer(
+                    filter: screenTimeOverlay.filter(
+                        for: pages[pageIndex].period,
+                        now: screenTimeReferenceDate,
+                        lifetimeStart: lifetimeStart
                     )
-                    .id(
-                        ScreenTimeReportID(
-                            pageID: pages[pageIndex].id,
-                            referenceDate: screenTimeReferenceDate,
-                            lifetimeStart: lifetimeStart
-                        )
-                    )
-                    .allowsHitTesting(false)
+                )
+                .allowsHitTesting(false)
 
+                TimelineView(.animation(minimumInterval: screenTimeTimerInterval)) { timeline in
                     TimerReadout(
                         period: pages[pageIndex].period,
                         now: timeline.date,
@@ -73,20 +82,20 @@ struct ContentView: View {
                     )
                     .allowsHitTesting(false)
                 }
-
-                Rectangle()
-                    .fill(Color.black.opacity(0.001))
-                    .contentShape(Rectangle())
-                    .gesture(swipeGesture)
-                    .onTapGesture(count: 2) {
-                        handleDoubleTap()
-                    }
-                    .onLongPressGesture(minimumDuration: 0.68) {
-                        handleLongPress()
-                    }
-                    .zIndex(100)
-                    .accessibilityHidden(true)
             }
+
+            Rectangle()
+                .fill(Color.black.opacity(0.001))
+                .contentShape(Rectangle())
+                .gesture(swipeGesture)
+                .onTapGesture(count: 2) {
+                    handleDoubleTap()
+                }
+                .onLongPressGesture(minimumDuration: 0.68) {
+                    handleLongPress()
+                }
+                .zIndex(100)
+                .accessibilityHidden(true)
         }
         .ignoresSafeArea()
         .persistentSystemOverlays(.hidden)
@@ -318,10 +327,12 @@ private struct SleepOverlayQueryID: Hashable {
     let refreshID: Int
 }
 
-private struct ScreenTimeReportID: Hashable {
-    let pageID: String
-    let referenceDate: Date
-    let lifetimeStart: Date
+private struct ScreenTimeReportLayer: View {
+    let filter: DeviceActivityFilter
+
+    var body: some View {
+        DeviceActivityReport(.lifeTimerScreenTime, filter: filter)
+    }
 }
 
 private struct LifeTimerDiagnosticsView: View {

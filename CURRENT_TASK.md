@@ -1,7 +1,7 @@
 # Current task: HealthKit and Screen Time overlays
 
-Status: complete; repository release and exact-commit physical-iPhone installation authorized
-Updated: 2026-07-24
+Status: performance hotfix in progress; repository release and exact-commit physical-iPhone installation authorized
+Updated: 2026-07-25
 
 ## Goal
 
@@ -27,7 +27,9 @@ Add independently controlled overlays to the iPhone/iPad app: HealthKit time in 
 - HealthKit sleep and Screen Time screen-on records are independent. Green may overlap blue when some screen-on duration was reported within the same bucket; it does not claim continuous phone use across that interval.
 - A compact Screen badge shows reported screen-on duration divided by elapsed time represented on the current page.
 - A host-owned minimally rendered interaction layer remains above Apple's report view so iOS cannot discard its hit-testing surface and page swipes, double taps, and long presses continue to work while the overlay is enabled.
-- One stable Device Activity report context is used for every page. Before a page change, the host writes only the selected presentation to the existing App Group; the extension reads it to align its private rendering. The report filter and explicit identity refresh while the enabled preference and authorization remain unchanged.
+- One stable Device Activity report context and report view are used for every page. Before a page change, the host writes only the selected presentation to the existing App Group, then updates the report filter without forcing the remote report process to be destroyed and recreated.
+- Apple's remote report is a sibling of the animated timer rather than a child of its timeline. While Screen is enabled, hour/day pages refresh at five frames per second and week-or-longer pages refresh once per second.
+- The extension batches each of the four possible hatch densities into one clipped diagonal path per visible timer region instead of issuing thousands of individual one-pixel fills.
 - Only the two local enable preferences persist. Neither overlay is added to the synchronized Life Timer settings contract.
 
 ## Verification target

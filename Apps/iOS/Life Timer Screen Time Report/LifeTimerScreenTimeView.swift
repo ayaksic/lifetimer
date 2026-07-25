@@ -108,6 +108,8 @@ struct LifeTimerScreenTimeView: View {
     ) {
         let visibleEnd = min(dateRange.end, configuration.referenceDate)
         guard dateRange.duration > 0, visibleEnd > dateRange.start else { return }
+        var coveragePaths = [Path](repeating: Path(), count: 5)
+        var hasCoverage = [Bool](repeating: false, count: 5)
 
         for bucket in buckets {
             let activityFraction = bucket.activityFraction(through: visibleEnd)
@@ -117,70 +119,116 @@ struct LifeTimerScreenTimeView: View {
             let end = min(bucket.dateInterval.end, visibleEnd)
             guard end > start else { continue }
 
-            fillHatchedProgressRange(
-                in: rect,
-                startProgress: start.timeIntervalSince(dateRange.start) / dateRange.duration,
-                endProgress: end.timeIntervalSince(dateRange.start) / dateRange.duration,
-                activityFraction: activityFraction,
-                context: &context
+            let density = hatchDensity(for: activityFraction)
+            coveragePaths[density].addPath(
+                linearProgressPath(
+                    in: rect,
+                    startProgress: start.timeIntervalSince(dateRange.start) / dateRange.duration,
+                    endProgress: end.timeIntervalSince(dateRange.start) / dateRange.duration
+                )
             )
+            hasCoverage[density] = true
+        }
+
+        let hatchPath = diagonalHatchPath(in: rect)
+
+        for density in 1...4 where hasCoverage[density] {
+            context.drawLayer { layer in
+                layer.clip(to: coveragePaths[density])
+                layer.stroke(
+                    hatchPath,
+                    with: .color(.lifePhone.opacity(0.46)),
+                    style: StrokeStyle(lineWidth: CGFloat(density), lineCap: .butt)
+                )
+            }
         }
     }
 
-    private func fillHatchedProgressRange(
+    private func hatchDensity(for activityFraction: Double) -> Int {
+        min(4, max(1, Int(ceil(activityFraction * 4))))
+    }
+
+    private func linearProgressPath(
         in rect: CGRect,
         startProgress: Double,
-        endProgress: Double,
-        activityFraction: Double,
-        context: inout GraphicsContext
-    ) {
+        endProgress: Double
+    ) -> Path {
         let width = max(1, Int(rect.width.rounded(.down)))
         let height = max(1, Int(rect.height.rounded(.down)))
         let totalPixels = width * height
-        let startPixel = Int(floor(Double(totalPixels) * min(1, max(0, startProgress))))
-        let endPixel = Int(ceil(Double(totalPixels) * min(1, max(0, endProgress))))
-        let patternSize = 12
-        let activeSlots = min(
-            4,
-            max(1, Int(ceil(activityFraction * 4)))
+        let startPixel = min(
+            totalPixels,
+            max(0, Int(floor(Double(totalPixels) * min(1, max(0, startProgress)))))
         )
-        var pixel = startPixel
+        let endPixel = min(
+            totalPixels,
+            max(0, Int(ceil(Double(totalPixels) * min(1, max(0, endProgress)))))
+        )
+        guard endPixel > startPixel else { return Path() }
 
-        while pixel < endPixel {
-            let row = pixel / width
-            let rowEnd = min(endPixel, (row + 1) * width)
-            let startColumn = pixel % width
-            let endColumn = rowEnd - row * width
-            let stagger = (row * 3) % patternSize
-            var hatchStart = ((startColumn + stagger) / patternSize) * patternSize - stagger
+        let startRow = startPixel / width
+        let startColumn = startPixel % width
+        let endRow = (endPixel - 1) / width
+        let endColumn = endPixel - endRow * width
+        var path = Path()
 
-            if hatchStart + activeSlots <= startColumn {
-                hatchStart += patternSize
-            }
-
-            while hatchStart < endColumn {
-                let runStart = max(startColumn, hatchStart)
-                let runEnd = min(endColumn, hatchStart + activeSlots)
-
-                if runEnd > runStart {
-                    context.fill(
-                        Path(
-                            CGRect(
-                                x: rect.minX + CGFloat(runStart),
-                                y: rect.minY + CGFloat(row),
-                                width: CGFloat(runEnd - runStart),
-                                height: 1
-                            )
-                        ),
-                        with: .color(.lifePhone.opacity(0.46))
-                    )
-                }
-
-                hatchStart += patternSize
-            }
-
-            pixel = rowEnd
+        if startRow == endRow {
+            path.addRect(
+                CGRect(
+                    x: rect.minX + CGFloat(startColumn),
+                    y: rect.minY + CGFloat(startRow),
+                    width: CGFloat(endColumn - startColumn),
+                    height: 1
+                )
+            )
+            return path
         }
+
+        path.addRect(
+            CGRect(
+                x: rect.minX + CGFloat(startColumn),
+                y: rect.minY + CGFloat(startRow),
+                width: CGFloat(width - startColumn),
+                height: 1
+            )
+        )
+
+        let fullRowCount = endRow - startRow - 1
+        if fullRowCount > 0 {
+            path.addRect(
+                CGRect(
+                    x: rect.minX,
+                    y: rect.minY + CGFloat(startRow + 1),
+                    width: CGFloat(width),
+                    height: CGFloat(fullRowCount)
+                )
+            )
+        }
+
+        path.addRect(
+            CGRect(
+                x: rect.minX,
+                y: rect.minY + CGFloat(endRow),
+                width: CGFloat(endColumn),
+                height: 1
+            )
+        )
+
+        return path
+    }
+
+    private func diagonalHatchPath(in rect: CGRect) -> Path {
+        let spacing: CGFloat = 12
+        var path = Path()
+        var x = rect.minX - rect.height
+
+        while x < rect.maxX {
+            path.move(to: CGPoint(x: x, y: rect.minY))
+            path.addLine(to: CGPoint(x: x + rect.height, y: rect.maxY))
+            x += spacing
+        }
+
+        return path
     }
 
     private func makeEdges(_ size: CGFloat, count: Int) -> [CGFloat] {

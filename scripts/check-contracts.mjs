@@ -16,6 +16,7 @@ const iOSContentView = read("Apps/iOS/Life Timer/ContentView.swift");
 const screenTimeExtensionInfo = read("Apps/iOS/Life Timer Screen Time Report/Info.plist");
 const screenTimeExtensionRoot = read("Apps/iOS/Life Timer Screen Time Report/LifeTimerScreenTimeReportExtension.swift");
 const screenTimeReport = read("Apps/iOS/Life Timer Screen Time Report/LifeTimerScreenTimeReport.swift");
+const screenTimeView = read("Apps/iOS/Life Timer Screen Time Report/LifeTimerScreenTimeView.swift");
 const watchProject = read("Apps/watchOS/lifetimer.xcodeproj/project.pbxproj");
 
 for (const [path, source] of [
@@ -117,8 +118,18 @@ assert(
   "iOS timer interaction layer must remain above the Screen Time report"
 );
 assert(
-  /DeviceActivityReport\([\s\S]*?\.id\(\s*ScreenTimeReportID\([\s\S]*?pageID:\s*pages\[pageIndex\]\.id[\s\S]*?referenceDate:\s*screenTimeReferenceDate[\s\S]*?lifetimeStart:\s*lifetimeStart/.test(iOSContentView),
-  "Screen Time report identity must change with page and filter inputs"
+  /TimelineView\([\s\S]*?TimerFace\([\s\S]*?\n\s*}\n\n\s*if screenTimeOverlay\.isEnabled \{\n\s*ScreenTimeReportLayer\(/.test(iOSContentView)
+    && (iOSContentView.match(/DeviceActivityReport\(/g) ?? []).length === 1
+    && /private struct ScreenTimeReportLayer: View \{[\s\S]*?DeviceActivityReport\(\.lifeTimerScreenTime, filter: filter\)[\s\S]*?\n\}/.test(iOSContentView)
+    && !/ScreenTimeReportLayer: View \{[\s\S]*?TimelineView/.test(iOSContentView),
+  "Screen Time report must remain a stable sibling outside the animated timer"
+);
+assert(
+  screenTimeView.includes("linearProgressPath")
+    && screenTimeView.includes("diagonalHatchPath")
+    && screenTimeView.includes("context.drawLayer")
+    && !screenTimeView.includes("while pixel <"),
+  "Screen Time hatch rendering must remain bounded rather than filling individual pixel runs"
 );
 assert(
   /OverlayQuickToggle\(\s*title:\s*"Sleep"[\s\S]*?sleepOverlay\.setEnabled/.test(iOSContentView)

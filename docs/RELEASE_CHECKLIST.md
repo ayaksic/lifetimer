@@ -74,7 +74,8 @@ These cannot be proven by simulator builds:
 - [ ] Confirm Watch complication timelines refresh and deep links open hour/day flow pages.
 - [ ] Start/end the iPhone Live Activity and verify Lock Screen/Dynamic Island rendering through an hour boundary.
 - [ ] Enable the Health sleep overlay on the owner-authorized iPhone, compare day/week positions and asleep/in-bed totals with Health, then verify disabling it immediately clears the overlay.
-- [ ] Enable the Screen Time screen-on overlay, approve individual access, compare the green aggregate and Screen percentage with Settings > Screen Time, swipe directly across green hatching through several pages, and verify every page reloads the overlay without another toggle or authorization request.
+- [ ] Enable the Screen Time screen-on overlay, approve individual access, compare the green aggregate and Screen percentage with Settings > Screen Time, swipe directly across green hatching through several pages, and verify the stable report updates every page without another toggle or authorization request.
+- [ ] Leave July Week 4 visible with Screen enabled for at least three minutes; verify the overlay loads, the app stays responsive, the phone does not become hot, and no Life Timer CPU-resource, watchdog, or DeviceActivityReportService crash record is created.
 - [ ] Disable Screen Time and verify it immediately clears both the green layer and percentage.
 - [ ] Toggle both overlays from the main-page `Sleep` and `Screen` controls, verify their colored/on and warm-white/off states, and confirm Diagnostics reflects the same preferences.
 - [ ] Confirm the Screen Time host/report-extension provisioning profiles contain the Family Controls entitlement before calling device installation complete.
