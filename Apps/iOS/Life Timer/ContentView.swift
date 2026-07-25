@@ -365,7 +365,7 @@ private struct LifeTimerDiagnosticsView: View {
                             .foregroundStyle(.secondary)
                     }
 
-                    Text("Apple keeps Screen Time records inside its report extension. Life Timer renders iPhone-only duration as a light green hatch: hourly buckets for shorter pages, daily buckets for a year, and weekly buckets for a lifetime. Hatch density represents aggregate duration, not exact session times.")
+                    Text("Apple keeps Screen Time records inside its report extension. Life Timer renders iPhone-only duration as a light green hatch: hourly buckets for shorter pages, daily buckets for a year, and weekly buckets for a lifetime. Hatch density represents aggregate duration, not exact session times, and stops at the live marker.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }

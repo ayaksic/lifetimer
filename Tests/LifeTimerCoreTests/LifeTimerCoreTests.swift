@@ -237,6 +237,21 @@ struct LifeTimerCoreTests {
         #expect(buckets[0].activityFraction == 1)
         #expect(buckets[1].activeDuration == 0)
         #expect(buckets[1].activityFraction == 0)
+
+        let currentHour = LifeTimerUsageBucket(
+            dateInterval: hour,
+            activeDuration: 600
+        )
+        #expect(
+            currentHour.activityFraction(
+                through: hour.start.addingTimeInterval(1_200)
+            ) == 0.5
+        )
+        #expect(
+            currentHour.activityFraction(
+                through: hour.start.addingTimeInterval(-1)
+            ) == 0
+        )
     }
 
     private func localDate(_ value: String, timeZone: TimeZone) throws -> Date {

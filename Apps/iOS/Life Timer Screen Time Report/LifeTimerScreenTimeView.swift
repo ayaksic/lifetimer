@@ -69,20 +69,22 @@ struct LifeTimerScreenTimeView: View {
         rect: CGRect,
         context: inout GraphicsContext
     ) {
-        guard dateRange.duration > 0 else { return }
+        let visibleEnd = min(dateRange.end, configuration.referenceDate)
+        guard dateRange.duration > 0, visibleEnd > dateRange.start else { return }
 
         for bucket in buckets {
-            guard bucket.dateInterval.intersects(dateRange), bucket.activityFraction > 0 else { continue }
+            let activityFraction = bucket.activityFraction(through: visibleEnd)
+            guard bucket.dateInterval.intersects(dateRange), activityFraction > 0 else { continue }
 
             let start = max(bucket.dateInterval.start, dateRange.start)
-            let end = min(bucket.dateInterval.end, dateRange.end)
+            let end = min(bucket.dateInterval.end, visibleEnd)
             guard end > start else { continue }
 
             fillHatchedProgressRange(
                 in: rect,
                 startProgress: start.timeIntervalSince(dateRange.start) / dateRange.duration,
                 endProgress: end.timeIntervalSince(dateRange.start) / dateRange.duration,
-                activityFraction: bucket.activityFraction,
+                activityFraction: activityFraction,
                 context: &context
             )
         }

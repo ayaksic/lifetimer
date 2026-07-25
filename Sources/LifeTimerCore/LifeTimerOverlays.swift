@@ -82,8 +82,14 @@ public struct LifeTimerUsageBucket: Equatable, Sendable {
     }
 
     public var activityFraction: Double {
-        guard dateInterval.duration > 0 else { return 0 }
-        return min(1, max(0, activeDuration / dateInterval.duration))
+        activityFraction(through: dateInterval.end)
+    }
+
+    public func activityFraction(through cutoff: Date) -> Double {
+        let observedEnd = min(dateInterval.end, cutoff)
+        let observedDuration = observedEnd.timeIntervalSince(dateInterval.start)
+        guard observedDuration > 0 else { return 0 }
+        return min(1, max(0, activeDuration / observedDuration))
     }
 
     public static func aggregated(_ buckets: [LifeTimerUsageBucket]) -> [LifeTimerUsageBucket] {

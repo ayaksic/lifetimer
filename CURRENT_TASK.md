@@ -22,7 +22,7 @@ Add independently controlled overlays to the iPhone/iPad app: HealthKit time in 
 - HealthKit remains authoritative. Sleep query results are merged and held in memory only.
 - Apple keeps Screen Time records inside the report extension. The host app receives only the extension-rendered view, not the underlying activity records.
 - The report extension reads the existing lifetime start from the shared App Group only to align lifetime grid cells. It has no HealthKit or CloudKit entitlement.
-- Screen Time supplies aggregate duration per reporting bucket, not exact session timestamps. A light green hatch spans each bucket, with density representing duration without inventing exact placement.
+- Screen Time supplies aggregate duration per reporting bucket, not exact session timestamps. A light green hatch spans only elapsed bucket time, with density representing duration without inventing exact placement or painting the future.
 - Only the two local enable preferences persist. Neither overlay is added to the synchronized Life Timer settings contract.
 
 ## Verification target
