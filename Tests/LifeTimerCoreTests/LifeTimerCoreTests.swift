@@ -234,10 +234,9 @@ struct LifeTimerCoreTests {
 
         #expect(buckets.count == 2)
         #expect(buckets[0].activeDuration == 3_600)
-        #expect(buckets[0].representativeInterval?.start == hour.start)
-        #expect(buckets[0].representativeInterval?.end == hour.end)
+        #expect(buckets[0].activityFraction == 1)
         #expect(buckets[1].activeDuration == 0)
-        #expect(buckets[1].representativeInterval == nil)
+        #expect(buckets[1].activityFraction == 0)
     }
 
     private func localDate(_ value: String, timeZone: TimeZone) throws -> Date {

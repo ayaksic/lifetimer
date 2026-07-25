@@ -72,30 +72,27 @@ struct LifeTimerScreenTimeView: View {
         guard dateRange.duration > 0 else { return }
 
         for bucket in buckets {
-            guard
-                bucket.dateInterval.intersects(dateRange),
-                let representative = bucket.representativeInterval
-            else {
-                continue
-            }
+            guard bucket.dateInterval.intersects(dateRange), bucket.activityFraction > 0 else { continue }
 
-            let start = max(representative.start, dateRange.start)
-            let end = min(representative.end, dateRange.end)
+            let start = max(bucket.dateInterval.start, dateRange.start)
+            let end = min(bucket.dateInterval.end, dateRange.end)
             guard end > start else { continue }
 
-            fillLinearProgressRange(
+            fillHatchedProgressRange(
                 in: rect,
                 startProgress: start.timeIntervalSince(dateRange.start) / dateRange.duration,
                 endProgress: end.timeIntervalSince(dateRange.start) / dateRange.duration,
+                activityFraction: bucket.activityFraction,
                 context: &context
             )
         }
     }
 
-    private func fillLinearProgressRange(
+    private func fillHatchedProgressRange(
         in rect: CGRect,
         startProgress: Double,
         endProgress: Double,
+        activityFraction: Double,
         context: inout GraphicsContext
     ) {
         let width = max(1, Int(rect.width.rounded(.down)))
@@ -103,24 +100,45 @@ struct LifeTimerScreenTimeView: View {
         let totalPixels = width * height
         let startPixel = Int(floor(Double(totalPixels) * min(1, max(0, startProgress))))
         let endPixel = Int(ceil(Double(totalPixels) * min(1, max(0, endProgress))))
+        let patternSize = 10
+        let activeSlots = min(
+            7,
+            max(1, Int(ceil(activityFraction * 7)))
+        )
         var pixel = startPixel
 
         while pixel < endPixel {
             let row = pixel / width
-            let column = pixel % width
             let rowEnd = min(endPixel, (row + 1) * width)
+            let startColumn = pixel % width
+            let endColumn = rowEnd - row * width
+            let stagger = (row * 3) % patternSize
+            var hatchStart = ((startColumn + stagger) / patternSize) * patternSize - stagger
 
-            context.fill(
-                Path(
-                    CGRect(
-                        x: rect.minX + CGFloat(column),
-                        y: rect.minY + CGFloat(row),
-                        width: CGFloat(rowEnd - pixel),
-                        height: 1
+            if hatchStart + activeSlots <= startColumn {
+                hatchStart += patternSize
+            }
+
+            while hatchStart < endColumn {
+                let runStart = max(startColumn, hatchStart)
+                let runEnd = min(endColumn, hatchStart + activeSlots)
+
+                if runEnd > runStart {
+                    context.fill(
+                        Path(
+                            CGRect(
+                                x: rect.minX + CGFloat(runStart),
+                                y: rect.minY + CGFloat(row),
+                                width: CGFloat(runEnd - runStart),
+                                height: 1
+                            )
+                        ),
+                        with: .color(.lifePhone.opacity(0.72))
                     )
-                ),
-                with: .color(.lifePhone)
-            )
+                }
+
+                hatchStart += patternSize
+            }
 
             pixel = rowEnd
         }

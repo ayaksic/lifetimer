@@ -57,6 +57,14 @@ struct ContentView: View {
                         )
                     )
                     .allowsHitTesting(false)
+
+                    TimerReadout(
+                        period: pages[pageIndex].period,
+                        now: timeline.date,
+                        lifetimeStart: lifetimeStart,
+                        unitPositionEnabled: unitPositionEnabled
+                    )
+                    .allowsHitTesting(false)
                 }
             }
         }
@@ -357,7 +365,7 @@ private struct LifeTimerDiagnosticsView: View {
                             .foregroundStyle(.secondary)
                     }
 
-                    Text("Apple keeps Screen Time records inside its report extension. Life Timer renders iPhone-only duration in green using hourly buckets for shorter pages, daily buckets for a year, and weekly buckets for a lifetime. Filled positions within each bucket are representative, not exact session times.")
+                    Text("Apple keeps Screen Time records inside its report extension. Life Timer renders iPhone-only duration as a light green hatch: hourly buckets for shorter pages, daily buckets for a year, and weekly buckets for a lifetime. Hatch density represents aggregate duration, not exact session times.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
