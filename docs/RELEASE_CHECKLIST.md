@@ -74,7 +74,8 @@ These cannot be proven by simulator builds:
 - [ ] Confirm Watch complication timelines refresh and deep links open hour/day flow pages.
 - [ ] Start/end the iPhone Live Activity and verify Lock Screen/Dynamic Island rendering through an hour boundary.
 - [ ] Enable the Health sleep overlay on the owner-authorized iPhone, compare day/week positions and asleep/in-bed totals with Health, then verify disabling it immediately clears the overlay.
-- [ ] Enable the Screen Time screen-on overlay, approve individual access, compare the green aggregate and Screen percentage with Settings > Screen Time, swipe directly across green hatching, and verify disabling it immediately clears both the green layer and percentage.
+- [ ] Enable the Screen Time screen-on overlay, approve individual access, compare the green aggregate and Screen percentage with Settings > Screen Time, swipe directly across green hatching through several pages, and verify every page reloads the overlay without another toggle or authorization request.
+- [ ] Disable Screen Time and verify it immediately clears both the green layer and percentage.
 - [ ] Confirm the Screen Time host/report-extension provisioning profiles contain the Family Controls entitlement before calling device installation complete.
 - [ ] Confirm installed version/build/commit match the released source.
 - [ ] Check current Personal Data Vault health separately and perform a restore drill only under its runbook.

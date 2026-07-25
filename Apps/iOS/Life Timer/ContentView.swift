@@ -56,6 +56,13 @@ struct ContentView: View {
                             lifetimeStart: lifetimeStart
                         )
                     )
+                    .id(
+                        ScreenTimeReportID(
+                            pageID: pages[pageIndex].id,
+                            referenceDate: screenTimeReferenceDate,
+                            lifetimeStart: lifetimeStart
+                        )
+                    )
                     .allowsHitTesting(false)
 
                     TimerReadout(
@@ -267,6 +274,12 @@ private struct SleepOverlayQueryID: Hashable {
     let lifetimeStart: Date
     let enabled: Bool
     let refreshID: Int
+}
+
+private struct ScreenTimeReportID: Hashable {
+    let pageID: String
+    let referenceDate: Date
+    let lifetimeStart: Date
 }
 
 private struct LifeTimerDiagnosticsView: View {

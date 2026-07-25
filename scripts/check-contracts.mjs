@@ -114,6 +114,10 @@ assert(
   /Rectangle\(\)[\s\S]*?\.fill\(Color\.black\.opacity\(0\.001\)\)[\s\S]*?\.contentShape\(Rectangle\(\)\)[\s\S]*?\.gesture\(swipeGesture\)[\s\S]*?\.zIndex\(100\)/.test(iOSContentView),
   "iOS timer interaction layer must remain above the Screen Time report"
 );
+assert(
+  /DeviceActivityReport\([\s\S]*?\.id\(\s*ScreenTimeReportID\([\s\S]*?pageID:\s*pages\[pageIndex\]\.id[\s\S]*?referenceDate:\s*screenTimeReferenceDate[\s\S]*?lifetimeStart:\s*lifetimeStart/.test(iOSContentView),
+  "Screen Time report identity must change with page and filter inputs"
+);
 
 for (const project of [iOSProject, watchProject]) {
   const versions = [...project.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map((match) => match[1].trim());
