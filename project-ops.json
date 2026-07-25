@@ -44,7 +44,7 @@
       "conflictRule": "Read-only visible-range query; merged in memory by category; never synchronized, logged, or backed up by Life Timer"
     },
     {
-      "concept": "Screen Time phone-use overlay",
+      "concept": "Screen Time screen-on overlay",
       "authority": "Owner-authorized Apple Device Activity report data",
       "consumers": ["Life Timer Screen Time report extension only"],
       "conflictRule": "iPhone-only aggregate buckets rendered inside the sandboxed extension; host receives no activity records; local enable preference is never synchronized"

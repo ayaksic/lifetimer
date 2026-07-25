@@ -9,7 +9,7 @@ Add independently controlled overlays to the iPhone/iPad app: HealthKit time in 
 
 ## Implemented behavior
 
-- Diagnostics has separate local `Show sleep data` and `Show phone use` toggles.
+- Diagnostics has separate local `Show sleep data` and `Show screen-on time` toggles.
 - The HealthKit toggle requests read-only sleep-analysis access. In-bed intervals render light blue and asleep intervals render deep blue.
 - The Screen Time toggle requests individual Family Controls authorization and hosts an Apple Device Activity report extension over the timer.
 - Screen Time is filtered to iPhone devices. It uses hourly duration buckets for hour/day/week/month, daily buckets for year, and weekly buckets for lifetime.
@@ -22,7 +22,9 @@ Add independently controlled overlays to the iPhone/iPad app: HealthKit time in 
 - HealthKit remains authoritative. Sleep query results are merged and held in memory only.
 - Apple keeps Screen Time records inside the report extension. The host app receives only the extension-rendered view, not the underlying activity records.
 - The report extension reads the existing lifetime start from the shared App Group only to align lifetime grid cells. It has no HealthKit or CloudKit entitlement.
-- Screen Time supplies aggregate duration per reporting bucket, not exact session timestamps. A light green hatch spans only elapsed bucket time, with density representing duration without inventing exact placement or painting the future.
+- Screen Time supplies aggregate screen-on duration per reporting bucket, not exact session timestamps. A soft, sparse green hatch spans only elapsed bucket time, with density representing duration without inventing exact placement or painting the future.
+- HealthKit sleep and Screen Time screen-on records are independent. Green may overlap blue when some screen-on duration was reported within the same bucket; it does not claim continuous phone use across that interval.
+- A host-owned transparent interaction layer remains above Apple's report view so page swipes, double taps, and long presses continue to work while the overlay is enabled.
 - Only the two local enable preferences persist. Neither overlay is added to the synchronized Life Timer settings contract.
 
 ## Verification target

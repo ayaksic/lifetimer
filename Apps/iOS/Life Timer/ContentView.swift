@@ -66,17 +66,21 @@ struct ContentView: View {
                     )
                     .allowsHitTesting(false)
                 }
+
+                Color.clear
+                    .contentShape(Rectangle())
+                    .gesture(swipeGesture)
+                    .onTapGesture(count: 2) {
+                        handleDoubleTap()
+                    }
+                    .onLongPressGesture(minimumDuration: 0.68) {
+                        handleLongPress()
+                    }
+                    .accessibilityHidden(true)
             }
         }
         .ignoresSafeArea()
         .persistentSystemOverlays(.hidden)
-        .gesture(swipeGesture)
-        .onTapGesture(count: 2) {
-            handleDoubleTap()
-        }
-        .onLongPressGesture(minimumDuration: 0.68) {
-            handleLongPress()
-        }
         .overlay(alignment: .topLeading) {
             Button {
                 diagnostics = LifeTimerSettingsRepository.shared.diagnostics()
@@ -342,7 +346,7 @@ private struct LifeTimerDiagnosticsView: View {
 
                 Section("Screen Time overlay") {
                     Toggle(
-                        "Show phone use",
+                        "Show screen-on time",
                         isOn: Binding(
                             get: { screenTimeOverlay.isEnabled },
                             set: { enabled in
@@ -357,7 +361,10 @@ private struct LifeTimerDiagnosticsView: View {
                     LabeledContent("State", value: screenTimeOverlay.statusLabel)
 
                     if screenTimeOverlay.isEnabled {
-                        OverlayLegendItem(label: "Phone use", color: .lifePhone)
+                        OverlayLegendItem(label: "Screen-on density", color: .lifePhone)
+                        Text("Sparse hatch = less screen-on time · denser hatch = more")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
 
                     if let detail = screenTimeOverlay.statusDetail {
@@ -365,7 +372,7 @@ private struct LifeTimerDiagnosticsView: View {
                             .foregroundStyle(.secondary)
                     }
 
-                    Text("Apple keeps Screen Time records inside its report extension. Life Timer renders iPhone-only duration as a light green hatch: hourly buckets for shorter pages, daily buckets for a year, and weekly buckets for a lifetime. Hatch density represents aggregate duration, not exact session times, and stops at the live marker.")
+                    Text("Apple keeps Screen Time records inside its report extension. Life Timer renders iPhone screen-on duration as a soft green hatch: hourly buckets for shorter pages, daily buckets for a year, and weekly buckets for a lifetime. Sleep and screen-on data are independent, so blue and green can overlap. A hatch means some screen-on time occurred somewhere in that bucket—not continuously across the hatched area—and it stops at the live marker.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }

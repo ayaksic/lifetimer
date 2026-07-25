@@ -12,6 +12,7 @@ const webCloud = read("Web/cloudkit-settings.js");
 const webIndex = read("Web/index.html");
 const cloudConfig = read("Web/cloudkit-config.js");
 const iOSProject = read("Apps/iOS/Life Timer.xcodeproj/project.pbxproj");
+const iOSContentView = read("Apps/iOS/Life Timer/ContentView.swift");
 const screenTimeExtensionInfo = read("Apps/iOS/Life Timer Screen Time Report/Info.plist");
 const watchProject = read("Apps/watchOS/lifetimer.xcodeproj/project.pbxproj");
 
@@ -108,6 +109,10 @@ assert(
 assert(
   /INFOPLIST_KEY_NSHealthShareUsageDescription = "[^"]*sleep[^"]*";/i.test(iOSProject),
   "iOS HealthKit sleep read usage description missing"
+);
+assert(
+  /Color\.clear[\s\S]*?\.contentShape\(Rectangle\(\)\)[\s\S]*?\.gesture\(swipeGesture\)/.test(iOSContentView),
+  "iOS timer interaction layer must remain above the Screen Time report"
 );
 
 for (const project of [iOSProject, watchProject]) {

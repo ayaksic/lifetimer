@@ -102,10 +102,10 @@ struct LifeTimerScreenTimeView: View {
         let totalPixels = width * height
         let startPixel = Int(floor(Double(totalPixels) * min(1, max(0, startProgress))))
         let endPixel = Int(ceil(Double(totalPixels) * min(1, max(0, endProgress))))
-        let patternSize = 10
+        let patternSize = 12
         let activeSlots = min(
-            7,
-            max(1, Int(ceil(activityFraction * 7)))
+            4,
+            max(1, Int(ceil(activityFraction * 4)))
         )
         var pixel = startPixel
 
@@ -135,7 +135,7 @@ struct LifeTimerScreenTimeView: View {
                                 height: 1
                             )
                         ),
-                        with: .color(.lifePhone.opacity(0.72))
+                        with: .color(.lifePhone.opacity(0.46))
                     )
                 }
 

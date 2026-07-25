@@ -40,7 +40,7 @@ The imported `lifetimer-swift` and `lifetimer-watch` histories remain historical
 | Unit-position visibility | Timestamped `LifeTimerSettings.unitPositionEnabled` | iPhone, Watch, web | Same newest-revision rule as lifetime start |
 | Current period/page and flow/grid view | Each client session (`@State pageIndex` or in-memory `activePeriod`) | Only the client being operated | Never uploaded; viewing a grid on one device does not change another device's presentation |
 | HealthKit sleep overlay | HealthKit sleep-analysis samples authorized by the device owner | iPhone/iPad host only | Read-only, queried for the visible range, held in memory, and never synchronized or backed up by Life Timer |
-| Screen Time phone-use overlay | Apple Device Activity report data authorized by the device owner | Sandboxed Screen Time report extension only | Extension renders aggregate duration; host does not receive activity records; local enable preference is not synchronized |
+| Screen Time screen-on overlay | Apple Device Activity report data authorized by the device owner | Sandboxed Screen Time report extension only | Extension renders aggregate duration; host does not receive activity records; local enable preference is not synchronized |
 | Live Activity running state | ActivityKit on the iPhone | iPhone and its Live Activity extension | Device-local; not a CloudKit setting |
 | Complication timeline | WidgetKit on the Watch | Watch face | Generated locally; host changes request `reloadAllTimelines`, and watchOS controls delivery/coalescing |
 
@@ -51,7 +51,7 @@ The imported `lifetimer-swift` and `lifetimer-watch` histories remain historical
 - WatchConnectivity: intentionally not implemented. There is no direct paired-phone queue or reachability path; a Watch must reach CloudKit during a host refresh to converge with a phone/web write.
 - iPhone refresh: repository startup and each transition to active request CloudKit reconciliation.
 - HealthKit: the iPhone/iPad host requests read-only sleep-analysis access only when the owner enables the Diagnostics toggle. Light blue represents in-bed samples; deep blue represents asleep samples. Overlapping samples from multiple sources are merged by category before totals or drawing.
-- Screen Time: the iPhone/iPad host requests individual Family Controls authorization only when the owner enables the Diagnostics toggle. The report filter includes iPhone devices only. The Device Activity report extension renders hourly, daily, or weekly aggregate buckets as a light green hatch whose density represents duration. The current bucket is clipped at the report time so future timer space remains untouched; exact session timestamps are not exposed.
+- Screen Time: the iPhone/iPad host requests individual Family Controls authorization only when the owner enables the Diagnostics toggle. The report filter includes iPhone devices only. The Device Activity report extension renders hourly, daily, or weekly aggregate buckets as a soft green hatch whose density represents screen-on duration. The current bucket is clipped at the report time so future timer space remains untouched; exact session timestamps are not exposed. HealthKit sleep and Screen Time are independent, so their overlays may overlap.
 - Watch refresh: opening the Watch app starts/reconciles the repository and reloads complication timelines after local settings changes.
 - Widget/complication: extensions consume their local App Group cache. They do not fetch CloudKit independently. Live Activity timing is device-local and does not use lifetime settings.
 - Web: settings use browser local storage immediately. On the configured production origin, authenticated CloudKit JS reconciles the same private record. Localhost/file use remains local-only.
@@ -105,7 +105,7 @@ No production verification is performed by the repository-wide local gate. After
 4. Confirm the installed iPhone and Watch builds show the intended version/build/commit and production CloudKit container.
 5. Confirm complication/Live Activity refresh behavior on physical devices.
 6. If the sleep overlay is part of the release, enable it on the owner-authorized iPhone, grant the intended Health access window, and compare the day/week overlay and totals with the Health app.
-7. Enable the Screen Time overlay, approve access, compare aggregate green duration with Settings > Screen Time, verify the shorter pages use hourly buckets, and toggle both overlays independently.
+7. Enable the Screen Time overlay, approve access, compare aggregate green screen-on duration with Settings > Screen Time, verify the shorter pages use hourly buckets, confirm page swipes/double taps/long presses still work, and toggle both overlays independently.
 
 ## Diagnostics and release identity
 
@@ -140,7 +140,7 @@ The public timer works without authentication. Private settings sync is mediated
 | Application-native export | Missing; Life Timer has no user-triggered export/import or isolated restore command |
 | Local authoritative cache | App Group preference `lifeTimer.settings.v1`; losing it is survivable only if another current copy exists |
 | Health sleep overlay | HealthKit remains authoritative; Life Timer stores only a local enable preference and holds queried samples in memory |
-| Screen Time phone-use overlay | Screen Time remains authoritative inside Apple's report extension; Life Timer stores only a local enable preference and does not export activity records |
+| Screen Time screen-on overlay | Screen Time remains authoritative inside Apple's report extension; Life Timer stores only a local enable preference and does not export activity records |
 | Cloud propagation copy | Private CloudKit mirror; useful for convergence but not independently proven as a backup/restore system |
 | Personal Data Vault handoff | Registered under canonical application ID `lifetimer` in bundle target `apple-device-apps` |
 | Captured source | `group.yaksic.lifetimer` App Group preference container |
