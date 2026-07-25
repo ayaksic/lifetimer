@@ -4,36 +4,26 @@ import LifeTimerCore
 import SwiftUI
 
 extension DeviceActivityReport.Context {
-    static func lifeTimerScreenTime(period: LifePeriod, style: TimerPageStyle) -> Self {
-        Self("life-timer-screen-time-\(style.rawValue)-\(period.contextName)")
-    }
+    static let lifeTimerScreenTime = Self("life-timer-screen-time")
 }
 
 struct LifeTimerScreenTimeConfiguration {
     let buckets: [LifeTimerUsageBucket]
     let lifetimeStart: Date
     let referenceDate: Date
+    let presentation: TimerPage
 }
 
 struct LifeTimerScreenTimeReport: DeviceActivityReportScene {
-    let period: LifePeriod
-    let style: TimerPageStyle
-
     var context: DeviceActivityReport.Context {
-        .lifeTimerScreenTime(period: period, style: style)
+        .lifeTimerScreenTime
     }
 
     let content: (LifeTimerScreenTimeConfiguration) -> LifeTimerScreenTimeView
 
-    init(period: LifePeriod, style: TimerPageStyle) {
-        self.period = period
-        self.style = style
-        content = {
-            LifeTimerScreenTimeView(
-                configuration: $0,
-                period: period,
-                style: style
-            )
+    init() {
+        content = { configuration in
+            LifeTimerScreenTimeView(configuration: configuration)
         }
     }
 
@@ -62,20 +52,8 @@ struct LifeTimerScreenTimeReport: DeviceActivityReportScene {
         return LifeTimerScreenTimeConfiguration(
             buckets: LifeTimerUsageBucket.aggregated(buckets),
             lifetimeStart: settingsRepository.current().lifetimeStart,
-            referenceDate: Date()
+            referenceDate: Date(),
+            presentation: LifeTimerScreenTimePresentationStore.current()
         )
-    }
-}
-
-private extension LifePeriod {
-    var contextName: String {
-        switch self {
-        case .hour: "hour"
-        case .day: "day"
-        case .week: "week"
-        case .month: "month"
-        case .year: "year"
-        case .lifetime: "lifetime"
-        }
     }
 }

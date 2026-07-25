@@ -4,8 +4,14 @@ import SwiftUI
 
 struct LifeTimerScreenTimeView: View {
     let configuration: LifeTimerScreenTimeConfiguration
-    let period: LifePeriod
-    let style: TimerPageStyle
+
+    private var period: LifePeriod {
+        configuration.presentation.period
+    }
+
+    private var style: TimerPageStyle {
+        configuration.presentation.style
+    }
 
     var body: some View {
         ZStack(alignment: .topTrailing) {

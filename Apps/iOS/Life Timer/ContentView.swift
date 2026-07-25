@@ -49,7 +49,7 @@ struct ContentView: View {
 
                 if screenTimeOverlay.isEnabled {
                     DeviceActivityReport(
-                        .lifeTimerScreenTime(for: pages[pageIndex]),
+                        .lifeTimerScreenTime,
                         filter: screenTimeOverlay.filter(
                             for: pages[pageIndex].period,
                             now: screenTimeReferenceDate,
@@ -131,11 +131,13 @@ struct ContentView: View {
                 lifetimeStart: lifetimeStart,
                 resetAction: {
                     settings = LifeTimerSettingsRepository.shared.update(lifetimeStart: defaultLifetimeStart)
+                    LifeTimerScreenTimePresentationStore.save(pages[pageIndex])
                     screenTimeReferenceDate = Date()
                     showingLifetimeEditor = false
                 },
                 saveAction: { nextStart in
                     settings = LifeTimerSettingsRepository.shared.update(lifetimeStart: nextStart)
+                    LifeTimerScreenTimePresentationStore.save(pages[pageIndex])
                     screenTimeReferenceDate = Date()
                     showingLifetimeEditor = false
                 }
@@ -159,6 +161,7 @@ struct ContentView: View {
             LifeTimerSettingsRepository.shared.start()
             settings = LifeTimerSettingsRepository.shared.current()
             diagnostics = LifeTimerSettingsRepository.shared.diagnostics()
+            LifeTimerScreenTimePresentationStore.save(pages[pageIndex])
             await monitorLiveActivity()
         }
         .task(id: SleepOverlayQueryID(
@@ -181,12 +184,14 @@ struct ContentView: View {
         }
         .onChange(of: screenTimeOverlay.isEnabled) { _, enabled in
             if enabled {
+                LifeTimerScreenTimePresentationStore.save(pages[pageIndex])
                 screenTimeReferenceDate = Date()
             }
         }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
             healthRefreshID += 1
+            LifeTimerScreenTimePresentationStore.save(pages[pageIndex])
             screenTimeReferenceDate = Date()
             screenTimeOverlay.refreshAuthorizationStatus()
 
@@ -215,12 +220,16 @@ struct ContentView: View {
     }
 
     private func showNextPeriod() {
-        pageIndex = wrappedIndex(pageIndex + 1)
+        let nextIndex = wrappedIndex(pageIndex + 1)
+        LifeTimerScreenTimePresentationStore.save(pages[nextIndex])
+        pageIndex = nextIndex
         screenTimeReferenceDate = Date()
     }
 
     private func showPreviousPeriod() {
-        pageIndex = wrappedIndex(pageIndex - 1)
+        let nextIndex = wrappedIndex(pageIndex - 1)
+        LifeTimerScreenTimePresentationStore.save(pages[nextIndex])
+        pageIndex = nextIndex
         screenTimeReferenceDate = Date()
     }
 
@@ -365,6 +374,9 @@ private struct LifeTimerDiagnosticsView: View {
                         isOn: Binding(
                             get: { screenTimeOverlay.isEnabled },
                             set: { enabled in
+                                if enabled {
+                                    LifeTimerScreenTimePresentationStore.save(presentation)
+                                }
                                 Task {
                                     await screenTimeOverlay.setEnabled(enabled)
                                 }

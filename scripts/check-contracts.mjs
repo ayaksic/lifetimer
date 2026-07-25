@@ -14,6 +14,8 @@ const cloudConfig = read("Web/cloudkit-config.js");
 const iOSProject = read("Apps/iOS/Life Timer.xcodeproj/project.pbxproj");
 const iOSContentView = read("Apps/iOS/Life Timer/ContentView.swift");
 const screenTimeExtensionInfo = read("Apps/iOS/Life Timer Screen Time Report/Info.plist");
+const screenTimeExtensionRoot = read("Apps/iOS/Life Timer Screen Time Report/LifeTimerScreenTimeReportExtension.swift");
+const screenTimeReport = read("Apps/iOS/Life Timer Screen Time Report/LifeTimerScreenTimeReport.swift");
 const watchProject = read("Apps/watchOS/lifetimer.xcodeproj/project.pbxproj");
 
 for (const [path, source] of [
@@ -117,6 +119,12 @@ assert(
 assert(
   /DeviceActivityReport\([\s\S]*?\.id\(\s*ScreenTimeReportID\([\s\S]*?pageID:\s*pages\[pageIndex\]\.id[\s\S]*?referenceDate:\s*screenTimeReferenceDate[\s\S]*?lifetimeStart:\s*lifetimeStart/.test(iOSContentView),
   "Screen Time report identity must change with page and filter inputs"
+);
+assert(
+  (screenTimeExtensionRoot.match(/LifeTimerScreenTimeReport\(\)/g) ?? []).length === 1
+    && screenTimeReport.includes('Self("life-timer-screen-time")')
+    && !screenTimeReport.includes("contextName"),
+  "Screen Time extension must use one stable report context"
 );
 
 for (const project of [iOSProject, watchProject]) {

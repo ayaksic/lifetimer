@@ -146,6 +146,31 @@ public struct LifeTimerUsageBucket: Equatable, Sendable {
     }
 }
 
+public enum LifeTimerScreenTimePresentationStore {
+    public static let key = "lifeTimer.screenTimePresentation.v1"
+
+    public static func save(
+        _ page: TimerPage,
+        defaults: UserDefaults = LifeTimerSettingsStorage.appGroupDefaults
+    ) {
+        defaults.set(page.id, forKey: key)
+        defaults.synchronize()
+    }
+
+    public static func current(
+        defaults: UserDefaults = LifeTimerSettingsStorage.appGroupDefaults
+    ) -> TimerPage {
+        guard
+            let pageID = defaults.string(forKey: key),
+            let page = TimerPage.all.first(where: { $0.id == pageID })
+        else {
+            return TimerPage(period: .hour, style: .flow)
+        }
+
+        return page
+    }
+}
+
 public extension LifePeriod {
     func gridDateIntervals(containing date: Date, lifetimeStart: Date) -> [DateInterval] {
         let calendar = Self.calendar

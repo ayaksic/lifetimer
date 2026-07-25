@@ -6,9 +6,7 @@ import LifeTimerCore
 import SwiftUI
 
 extension DeviceActivityReport.Context {
-    static func lifeTimerScreenTime(for page: TimerPage) -> Self {
-        Self("life-timer-screen-time-\(page.style.rawValue)-\(page.period.contextName)")
-    }
+    static let lifeTimerScreenTime = Self("life-timer-screen-time")
 }
 
 @MainActor
@@ -136,19 +134,6 @@ final class ScreenTimeOverlay: ObservableObject {
             false
         @unknown default:
             false
-        }
-    }
-}
-
-private extension LifePeriod {
-    var contextName: String {
-        switch self {
-        case .hour: "hour"
-        case .day: "day"
-        case .week: "week"
-        case .month: "month"
-        case .year: "year"
-        case .lifetime: "lifetime"
         }
     }
 }

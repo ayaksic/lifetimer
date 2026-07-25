@@ -26,7 +26,7 @@ Add independently controlled overlays to the iPhone/iPad app: HealthKit time in 
 - HealthKit sleep and Screen Time screen-on records are independent. Green may overlap blue when some screen-on duration was reported within the same bucket; it does not claim continuous phone use across that interval.
 - A compact Screen badge shows reported screen-on duration divided by elapsed time represented on the current page.
 - A host-owned minimally rendered interaction layer remains above Apple's report view so iOS cannot discard its hit-testing surface and page swipes, double taps, and long presses continue to work while the overlay is enabled.
-- Each page/filter combination has an explicit report identity, forcing Apple's remote report controller to refresh after a swipe while preserving the enabled preference and authorization.
+- One stable Device Activity report context is used for every page. Before a page change, the host writes only the selected presentation to the existing App Group; the extension reads it to align its private rendering. The report filter and explicit identity refresh while the enabled preference and authorization remain unchanged.
 - Only the two local enable preferences persist. Neither overlay is added to the synchronized Life Timer settings contract.
 
 ## Verification target

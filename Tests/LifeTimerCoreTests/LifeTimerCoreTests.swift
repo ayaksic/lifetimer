@@ -276,6 +276,22 @@ struct LifeTimerCoreTests {
         #expect(abs(clippedFraction - (600.0 / 1_800.0)) < 0.000_001)
     }
 
+    @Test("Screen Time presentation survives report-process boundaries")
+    func screenTimePresentation() throws {
+        let suiteName = "LifeTimerCoreTests.ScreenTimePresentation.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        #expect(
+            LifeTimerScreenTimePresentationStore.current(defaults: defaults)
+                == TimerPage(period: .hour, style: .flow)
+        )
+
+        let page = TimerPage(period: .year, style: .grid)
+        LifeTimerScreenTimePresentationStore.save(page, defaults: defaults)
+        #expect(LifeTimerScreenTimePresentationStore.current(defaults: defaults) == page)
+    }
+
     private func localDate(_ value: String, timeZone: TimeZone) throws -> Date {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime]
