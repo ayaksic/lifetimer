@@ -443,7 +443,7 @@ private struct LifeTimerDiagnosticsView: View {
                             .foregroundStyle(.secondary)
                     }
 
-                    Text("Apple keeps Screen Time records inside its report extension. Life Timer renders screen-on duration for this device only as a soft green hatch: hourly buckets for shorter pages, daily buckets for a year, and weekly buckets for a lifetime. The small Screen badge is reported screen-on duration divided by elapsed time represented on the current page. Sleep and screen-on data are independent, so blue and green can overlap. A hatch means some screen-on time occurred somewhere in that bucket—not continuously across the hatched area—and it stops at the live marker.")
+                    Text("Apple keeps Screen Time records inside its report extension. Life Timer renders screen-on duration for this device only as a soft green hatch: hourly buckets for shorter pages, daily buckets for a year, and weekly buckets for a lifetime. The small Screen badge shows reported screen-on duration and its percentage of elapsed time represented on the current page. Sleep and screen-on data are independent, so blue and green can overlap. A hatch means some screen-on time occurred somewhere in that bucket—not continuously across the hatched area—and it stops at the live marker.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }

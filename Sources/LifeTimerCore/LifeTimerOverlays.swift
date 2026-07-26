@@ -118,11 +118,23 @@ public struct LifeTimerUsageBucket: Equatable, Sendable {
         let representedDuration = representedEnd.timeIntervalSince(range.start)
         guard representedDuration > 0 else { return 0 }
 
-        let activeDuration = aggregated(buckets).reduce(0) { total, bucket in
-            total + bucket.estimatedActiveDuration(in: range, through: cutoff)
-        }
+        let activeDuration = representedActivityDuration(
+            in: buckets,
+            range: range,
+            through: cutoff
+        )
 
         return min(1, max(0, activeDuration / representedDuration))
+    }
+
+    public static func representedActivityDuration(
+        in buckets: [LifeTimerUsageBucket],
+        range: DateInterval,
+        through cutoff: Date
+    ) -> TimeInterval {
+        aggregated(buckets).reduce(0) { total, bucket in
+            total + bucket.estimatedActiveDuration(in: range, through: cutoff)
+        }
     }
 
     public static func aggregated(_ buckets: [LifeTimerUsageBucket]) -> [LifeTimerUsageBucket] {

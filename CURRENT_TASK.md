@@ -1,6 +1,6 @@
 # Current task: HealthKit and Screen Time overlays
 
-Status: current-device Screen Time filter fix implemented; version 1.0 (11) commit, push, and iPhone installation authorized; physical-device data comparison pending
+Status: Screen badge duration-plus-percentage improvement implemented; version 1.0 (12) commit, push, and iPhone installation authorized; physical-device display comparison pending
 Updated: 2026-07-26
 
 ## Goal
@@ -25,7 +25,7 @@ Add independently controlled overlays to the iPhone/iPad app: HealthKit time in 
 - The report extension reads the existing lifetime start from the shared App Group only to align lifetime grid cells. It has no HealthKit or CloudKit entitlement.
 - Screen Time supplies aggregate screen-on duration per reporting bucket, not exact session timestamps. A soft, sparse green hatch spans only elapsed bucket time, with density representing duration without inventing exact placement or painting the future.
 - HealthKit sleep and Screen Time screen-on records are independent. Green may overlap blue when some screen-on duration was reported within the same bucket; it does not claim continuous phone use across that interval.
-- A compact Screen badge shows reported screen-on duration divided by elapsed time represented on the current page.
+- A compact Screen badge shows both represented screen-on duration and its percentage of elapsed time on the current page, for example `SCREEN 4h 58m · 33.1%`.
 - A host-owned minimally rendered interaction layer remains above Apple's report view so iOS cannot discard its hit-testing surface and page swipes, double taps, and long presses continue to work while the overlay is enabled.
 - One stable Device Activity report context and report view are used for every page. Before a page change, the host writes only the selected presentation to the existing App Group, then updates the report filter without forcing the remote report process to be destroyed and recreated.
 - Apple's remote report is a sibling of the animated timer rather than a child of its timeline. While Screen is enabled, hour/day pages refresh at five frames per second and week-or-longer pages refresh once per second.
@@ -42,7 +42,7 @@ Add independently controlled overlays to the iPhone/iPad app: HealthKit time in 
 - The signed app installs, launches, and remains running on Andrew's iPhone 16 Pro Max.
 - Owner interaction remains necessary to grant both permissions and compare the resulting overlays with Health and Settings > Screen Time.
 - Current-device filtering must be compared with Settings > Screen Time while the current device—not All Devices—is selected.
-- This corrective iPhone release advances the host, widget, and Screen Time report extension together from build 10 to build 11.
+- This display release advances the host, widget, and Screen Time report extension together from build 11 to build 12.
 
 ## Release boundaries
 

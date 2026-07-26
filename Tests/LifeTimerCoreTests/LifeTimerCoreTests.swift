@@ -262,6 +262,15 @@ struct LifeTimerCoreTests {
             through: hour.end.addingTimeInterval(1_800)
         )
         #expect(abs(representedFraction - (900.0 / 5_400.0)) < 0.000_001)
+        let representedDuration = LifeTimerUsageBucket.representedActivityDuration(
+            in: [
+                LifeTimerUsageBucket(dateInterval: hour, activeDuration: 600),
+                LifeTimerUsageBucket(dateInterval: nextHour, activeDuration: 300),
+            ],
+            range: DateInterval(start: hour.start, end: nextHour.end),
+            through: hour.end.addingTimeInterval(1_800)
+        )
+        #expect(abs(representedDuration - 900) < 0.000_001)
 
         let clippedFraction = LifeTimerUsageBucket.representedActivityFraction(
             in: [

@@ -137,6 +137,11 @@ assert(
   "Screen Time hatch rendering must remain bounded rather than filling individual pixel runs"
 );
 assert(
+  screenTimeView.includes("representedActivityDuration")
+    && screenTimeView.includes('"SCREEN %@ · %.1f%%"'),
+  "Screen Time badge must show both represented duration and elapsed-time percentage"
+);
+assert(
   /OverlayQuickToggle\(\s*title:\s*"Sleep"[\s\S]*?sleepOverlay\.setEnabled/.test(iOSContentView)
     && /OverlayQuickToggle\(\s*title:\s*"Screen"[\s\S]*?screenTimeOverlay\.setEnabled/.test(iOSContentView),
   "main timer must expose direct Sleep and Screen overlay controls"

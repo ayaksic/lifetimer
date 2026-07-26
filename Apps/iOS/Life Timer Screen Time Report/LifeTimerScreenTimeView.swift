@@ -22,7 +22,7 @@ struct LifeTimerScreenTimeView: View {
                 .accessibilityHidden(true)
             }
 
-            Text(screenOnPercentageLabel)
+            Text(screenOnBadgeLabel)
                 .font(.system(size: 11, weight: .bold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(Color.lifeInk)
@@ -35,22 +35,45 @@ struct LifeTimerScreenTimeView: View {
                 }
                 .padding(.top, 50)
                 .padding(.trailing, 12)
-                .accessibilityLabel("Screen-on time \(screenOnPercentageLabel)")
+                .accessibilityLabel("Screen-on time \(screenOnBadgeLabel)")
         }
         .background(Color.clear)
     }
 
-    private var screenOnPercentageLabel: String {
+    private var screenOnBadgeLabel: String {
         let representedRange = period.range(
             containing: configuration.referenceDate,
             lifetimeStart: configuration.lifetimeStart
+        )
+        let duration = LifeTimerUsageBucket.representedActivityDuration(
+            in: configuration.buckets,
+            range: representedRange,
+            through: configuration.referenceDate
         )
         let fraction = LifeTimerUsageBucket.representedActivityFraction(
             in: configuration.buckets,
             range: representedRange,
             through: configuration.referenceDate
         )
-        return String(format: "SCREEN %.1f%%", fraction * 100)
+        return String(
+            format: "SCREEN %@ · %.1f%%",
+            formattedDuration(duration),
+            fraction * 100
+        )
+    }
+
+    private func formattedDuration(_ duration: TimeInterval) -> String {
+        let totalMinutes = max(0, Int((duration / 60).rounded()))
+        let hours = totalMinutes / 60
+        let minutes = totalMinutes % 60
+
+        if hours == 0 {
+            return "\(minutes)m"
+        }
+        if minutes == 0 {
+            return "\(hours)h"
+        }
+        return "\(hours)h \(minutes)m"
     }
 
     private func drawUsage(in context: inout GraphicsContext, size: CGSize) {
