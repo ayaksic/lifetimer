@@ -122,7 +122,7 @@ final class ScreenTimeOverlay: ObservableObject {
 
         return DeviceActivityFilter(
             segment: segment,
-            devices: .init([.iPhone])
+            devices: nil
         )
     }
 

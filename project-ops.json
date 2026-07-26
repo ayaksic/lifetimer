@@ -13,7 +13,7 @@
     { "name": "LifeTimerCore", "platform": "Swift package", "role": "Shared timer behavior, settings contract, CloudKit reconciliation, and diagnostics" },
     { "name": "Life Timer web", "platform": "Static HTML and JavaScript", "role": "Browser timer with local fallback and private CloudKit settings sync" },
     { "name": "Life Timer", "platform": "iOS/iPadOS", "role": "Native host UI, local read-only HealthKit sleep overlay, Screen Time report host, and Live Activity control" },
-    { "name": "Life Timer Screen Time Report", "platform": "iOS ExtensionKit", "role": "Sandboxed iPhone activity-duration overlay renderer" },
+    { "name": "Life Timer Screen Time Report", "platform": "iOS ExtensionKit", "role": "Sandboxed current-device activity-duration overlay renderer" },
     { "name": "Life Timer WidgetsExtension", "platform": "iOS WidgetKit/ActivityKit", "role": "Hour Live Activity and Dynamic Island presentation" },
     { "name": "Life Timer Watch App", "platform": "watchOS", "role": "Native Watch host UI and CloudKit refresh" },
     { "name": "Life Timer complication", "platform": "watchOS WidgetKit", "role": "Local hour/day complication timelines" }
@@ -47,7 +47,7 @@
       "concept": "Screen Time screen-on overlay",
       "authority": "Owner-authorized Apple Device Activity report data",
       "consumers": ["Life Timer Screen Time report extension only"],
-      "conflictRule": "iPhone-only aggregate buckets rendered inside the sandboxed extension; host receives no activity records; local enable preference is never synchronized"
+      "conflictRule": "Current-device-only aggregate buckets rendered inside the sandboxed extension; host receives no activity records; local enable preference is never synchronized"
     }
   ],
   "environments": [

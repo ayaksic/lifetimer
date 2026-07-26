@@ -13,6 +13,7 @@ const webIndex = read("Web/index.html");
 const cloudConfig = read("Web/cloudkit-config.js");
 const iOSProject = read("Apps/iOS/Life Timer.xcodeproj/project.pbxproj");
 const iOSContentView = read("Apps/iOS/Life Timer/ContentView.swift");
+const iOSScreenTimeOverlay = read("Apps/iOS/Life Timer/ScreenTimeOverlay.swift");
 const screenTimeExtensionInfo = read("Apps/iOS/Life Timer Screen Time Report/Info.plist");
 const screenTimeExtensionRoot = read("Apps/iOS/Life Timer Screen Time Report/LifeTimerScreenTimeReportExtension.swift");
 const screenTimeReport = read("Apps/iOS/Life Timer Screen Time Report/LifeTimerScreenTimeReport.swift");
@@ -123,6 +124,10 @@ assert(
     && /private struct ScreenTimeReportLayer: View \{[\s\S]*?DeviceActivityReport\(\.lifeTimerScreenTime, filter: filter\)[\s\S]*?\n\}/.test(iOSContentView)
     && !/ScreenTimeReportLayer: View \{[\s\S]*?TimelineView/.test(iOSContentView),
   "Screen Time report must remain a stable sibling outside the animated timer"
+);
+assert(
+  /DeviceActivityFilter\(\s*segment:\s*segment,\s*devices:\s*nil\s*\)/.test(iOSScreenTimeOverlay),
+  "Screen Time filter must remain current-device-only; a model filter aggregates all shared devices of that model"
 );
 assert(
   screenTimeView.includes("linearProgressPath")
