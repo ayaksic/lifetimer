@@ -89,9 +89,9 @@ public struct FlowRasterGeometry: Equatable, Sendable {
         precondition(progress.isFinite, "Flow raster progress must be finite")
         precondition(columns > 0 && rows > 0, "Flow raster dimensions must be positive")
         let (cellCount, overflow) = columns.multipliedReportingOverflow(by: rows)
-        let maximumExactlyRepresentableCellCount = 9_007_199_254_740_992
+        let maximumExactlyRepresentableCellCount: Double = 9_007_199_254_740_992
         precondition(
-            !overflow && cellCount <= maximumExactlyRepresentableCellCount,
+            !overflow && Double(cellCount) <= maximumExactlyRepresentableCellCount,
             "Flow raster dimensions are too large"
         )
 
