@@ -36,6 +36,48 @@ struct LifeTimerCoreTests {
         }
     }
 
+    @Test("Flow raster geometry advances across rows and clamps completion")
+    func flowRasterGeometry() {
+        let cases: [(progress: Double, elapsed: Int, completedRows: Int, partial: Int, column: Int, row: Int)] = [
+            (0, 0, 0, 0, 0, 0),
+            (3.999 / 16, 3, 0, 3, 3, 0),
+            (4.0 / 16, 4, 1, 0, 0, 1),
+            (6.0 / 16, 6, 1, 2, 2, 1),
+            (15.0 / 16, 15, 3, 3, 3, 3),
+            (1, 16, 4, 0, 3, 3),
+        ]
+
+        for fixture in cases {
+            let geometry = FlowRasterGeometry(progress: fixture.progress, columns: 4, rows: 4)
+            #expect(geometry.elapsedCellCount == fixture.elapsed)
+            #expect(geometry.completedRowCount == fixture.completedRows)
+            #expect(geometry.partialRowCellCount == fixture.partial)
+            #expect(geometry.liveColumn == fixture.column)
+            #expect(geometry.liveRow == fixture.row)
+        }
+
+        let baseline = FlowRasterGeometry(
+            progress: 900.0 / 3_600,
+            columns: 200,
+            rows: 240
+        )
+        let tenSecondsLater = FlowRasterGeometry(
+            progress: 910.0 / 3_600,
+            columns: 200,
+            rows: 240
+        )
+        #expect(baseline.liveColumn == 0)
+        #expect(baseline.liveRow == 60)
+        #expect(tenSecondsLater.elapsedCellCount == 12_133)
+        #expect(tenSecondsLater.completedRowCount == 60)
+        #expect(tenSecondsLater.partialRowCellCount == 133)
+        #expect(tenSecondsLater.liveColumn == 133)
+        #expect(tenSecondsLater.liveRow == 60)
+
+        #expect(FlowRasterGeometry(progress: -0.25, columns: 1, rows: 1).elapsedCellCount == 0)
+        #expect(FlowRasterGeometry(progress: 1.25, columns: 1, rows: 1).elapsedCellCount == 1)
+    }
+
     @Test("Newer settings win and legacy defaults migrate")
     func settingsRepository() throws {
         let suiteName = "LifeTimerCoreTests.\(UUID().uuidString)"

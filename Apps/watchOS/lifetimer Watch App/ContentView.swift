@@ -324,20 +324,59 @@ private struct FlowTimerFace: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let fillHeight = geometry.size.height * progress
-            let markerY = max(0, min(geometry.size.height, fillHeight))
+            let size = CGSize(
+                width: max(1, geometry.size.width.rounded(.down)),
+                height: max(1, geometry.size.height.rounded(.down))
+            )
+            let raster = FlowRasterGeometry(
+                progress: progress,
+                columns: Int(size.width),
+                rows: Int(size.height)
+            )
+            let marker = CGPoint(
+                x: CGFloat(raster.liveColumn),
+                y: CGFloat(raster.liveRow)
+            )
+            let markerRadius: CGFloat = 4
+            let renderedMarker = CGPoint(
+                x: min(max(markerRadius, marker.x), max(markerRadius, size.width - markerRadius)),
+                y: min(max(markerRadius, marker.y), max(markerRadius, size.height - markerRadius))
+            )
             let readoutOffset = TimerReadoutLayout.offset(
-                for: markerY,
-                in: geometry.size.height,
+                for: marker.y,
+                in: size.height,
                 readoutHeight: readoutHeight
             )
 
-            ZStack(alignment: .top) {
+            ZStack {
                 Color.lifeRemaining
 
-                Color.lifeElapsed
-                    .frame(height: fillHeight)
-                    .frame(maxWidth: .infinity, alignment: .top)
+                Canvas { context, _ in
+                    if raster.completedRowCount > 0 {
+                        context.fill(
+                            Path(CGRect(
+                                x: 0,
+                                y: 0,
+                                width: size.width,
+                                height: CGFloat(raster.completedRowCount)
+                            )),
+                            with: .color(.lifeElapsed)
+                        )
+                    }
+
+                    if raster.partialRowCellCount > 0,
+                       raster.completedRowCount < raster.rows {
+                        context.fill(
+                            Path(CGRect(
+                                x: 0,
+                                y: CGFloat(raster.completedRowCount),
+                                width: CGFloat(raster.partialRowCellCount),
+                                height: 1
+                            )),
+                            with: .color(.lifeElapsed)
+                        )
+                    }
+                }
 
                 Circle()
                     .fill(Color.lifeLive)
@@ -346,35 +385,15 @@ private struct FlowTimerFace: View {
                             .stroke(Color.lifeInk, lineWidth: 1)
                     )
                     .frame(width: 8, height: 8)
-                    .position(x: geometry.size.width / 2, y: markerY)
+                    .position(x: renderedMarker.x, y: renderedMarker.y)
 
-                VStack(spacing: 4) {
-                    Text(period.label(for: now))
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.lifeMuted)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.65)
-
-                    Text(period.percentString(at: now, lifetimeStart: lifetimeStart))
-                        .font(.system(size: 30, weight: .heavy, design: .monospaced))
-                        .foregroundStyle(Color.lifeInk)
-                        .monospacedDigit()
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.35)
-
-                    if unitPositionEnabled {
-                        Text(period.unitPositionLabel(at: now, lifetimeStart: lifetimeStart))
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color.lifeInk)
-                            .monospacedDigit()
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.65)
-                    }
-                }
-                .padding(.horizontal, 10)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                TimerReadout(
+                    period: period,
+                    now: now,
+                    lifetimeStart: lifetimeStart,
+                    unitPositionEnabled: unitPositionEnabled
+                )
                 .offset(y: readoutOffset)
-                .shadow(color: Color.white.opacity(0.7), radius: 10, y: 1)
                 .animation(.easeOut(duration: 0.16), value: readoutOffset)
             }
         }

@@ -72,6 +72,7 @@ These cannot be proven by simulator builds:
 - [ ] Make a setting change offline, confirm pending state, restore connectivity, and verify convergence.
 - [ ] Confirm App Group delivery from each host to its own extension surface.
 - [ ] Confirm Watch complication timelines refresh and deep links open hour/day flow pages.
+- [ ] On the Watch hour/flow page with the display active, confirm the live marker sweeps horizontally within ten seconds and catches up after wrist-down/wrist-up.
 - [ ] Start/end the iPhone Live Activity and verify Lock Screen/Dynamic Island rendering through an hour boundary.
 - [ ] Enable the Health sleep overlay on the owner-authorized iPhone, compare day/week positions and asleep/in-bed totals with Health, then verify disabling it immediately clears the overlay.
 - [ ] Enable the Screen Time screen-on overlay, approve individual access, compare the green aggregate plus the Screen duration and percentage with Settings > Screen Time while the current device—not All Devices—is selected, swipe directly across green hatching through several pages, and verify the stable report updates every page without another toggle or authorization request.

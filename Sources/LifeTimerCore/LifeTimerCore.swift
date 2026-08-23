@@ -59,6 +59,50 @@ public struct CellFillRange: Equatable, Sendable {
     public let showMarker: Bool
 }
 
+public struct FlowRasterGeometry: Equatable, Sendable {
+    public let columns: Int
+    public let rows: Int
+    public let elapsedCellCount: Int
+    public let totalCellCount: Int
+
+    public var completedRowCount: Int {
+        elapsedCellCount / columns
+    }
+
+    public var partialRowCellCount: Int {
+        elapsedCellCount % columns
+    }
+
+    public var liveCellIndex: Int {
+        min(totalCellCount - 1, elapsedCellCount)
+    }
+
+    public var liveColumn: Int {
+        liveCellIndex % columns
+    }
+
+    public var liveRow: Int {
+        liveCellIndex / columns
+    }
+
+    public init(progress: Double, columns: Int, rows: Int) {
+        precondition(progress.isFinite, "Flow raster progress must be finite")
+        precondition(columns > 0 && rows > 0, "Flow raster dimensions must be positive")
+        let (cellCount, overflow) = columns.multipliedReportingOverflow(by: rows)
+        let maximumExactlyRepresentableCellCount = 9_007_199_254_740_992
+        precondition(
+            !overflow && cellCount <= maximumExactlyRepresentableCellCount,
+            "Flow raster dimensions are too large"
+        )
+
+        self.columns = columns
+        self.rows = rows
+        totalCellCount = cellCount
+        let clampedProgress = min(1, max(0, progress))
+        elapsedCellCount = Int(floor(Double(cellCount) * clampedProgress))
+    }
+}
+
 public enum LifePeriod: Int, CaseIterable, Identifiable, Codable, Sendable {
     case hour
     case day
