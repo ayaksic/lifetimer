@@ -3,9 +3,12 @@
 
   const recordName = "settings";
   const recordType = "LifeTimerSettings";
+  let container = null;
   let database = null;
   let fetchedRecord = null;
   let callbacks = null;
+  let accountIdentity = null;
+  let identityGeneration = 0;
 
   function field(record, name) {
     const value = record && record.fields && record.fields[name];
@@ -62,35 +65,135 @@
     if (response.hasErrors) {
       const error = response.errors && response.errors[0];
       if (error && (error.ckErrorCode === "NOT_FOUND" || error.serverErrorCode === "NOT_FOUND")) {
-        fetchedRecord = null;
-        return null;
+        return { record: null, settings: null };
       }
       throw error || new Error("CloudKit fetch failed");
     }
-    fetchedRecord = response.records[0] || null;
-    return decode(fetchedRecord);
+    const record = response.records[0] || null;
+    return { record, settings: decode(record) };
   }
 
-  async function save(settings) {
-    if (!database) return;
+  async function saveRecord(settings, generation = identityGeneration) {
+    if (!database) return false;
     callbacks.setStatus("syncing");
     const response = await database.saveRecords(encode(settings));
     if (response.hasErrors) throw response.errors[0];
+    if (generation !== identityGeneration) return false;
     fetchedRecord = response.records[0];
     callbacks.setStatus("synced");
+    return true;
+  }
+
+  async function revalidateIdentity(generation) {
+    const identity = await container.setUpAuth();
+    if (generation !== identityGeneration) return false;
+    const currentIdentity = identityKey(identity);
+    if (!currentIdentity) {
+      enterSignedOutState();
+      return false;
+    }
+    if (currentIdentity !== accountIdentity) {
+      selectIdentity(identity);
+      observeSignOut();
+      await reconcile();
+      return false;
+    }
+    return true;
   }
 
   async function reconcile() {
+    const generation = identityGeneration;
     callbacks.setStatus("syncing");
+    const fetched = await fetchRemote();
+    if (generation !== identityGeneration) return;
+    if (!await revalidateIdentity(generation)) return;
+    fetchedRecord = fetched.record;
+    const remote = fetched.settings;
     const local = callbacks.getLocalSettings();
-    const remote = await fetchRemote();
 
-    if (!remote || local.updatedAt > remote.updatedAt) {
-      await save(local);
-    } else if (remote.updatedAt > local.updatedAt) {
+    if (!remote && local.updatedAt.getTime() > 0) {
+      if (!await saveForCurrentIdentity(local)) return;
+    } else if (remote && local.updatedAt > remote.updatedAt) {
+      if (!await saveForCurrentIdentity(local)) return;
+    } else if (remote && remote.updatedAt > local.updatedAt) {
       callbacks.applyRemoteSettings(remote);
     }
     callbacks.setStatus("synced");
+  }
+
+  function identityKey(identity) {
+    const value = identity && identity.userRecordName;
+    return typeof value === "string" && value.trim() ? value.trim() : null;
+  }
+
+  function selectIdentity(identity) {
+    const nextIdentity = identityKey(identity);
+    if (!nextIdentity) {
+      throw new TypeError("CloudKit did not provide a stable user identity");
+    }
+    if (nextIdentity !== accountIdentity) {
+      accountIdentity = nextIdentity;
+      identityGeneration += 1;
+      fetchedRecord = null;
+      callbacks.setAccountIdentity(nextIdentity);
+    }
+  }
+
+  function waitForSignIn() {
+    if (!container || typeof container.whenUserSignsIn !== "function") return;
+    container.whenUserSignsIn()
+      .then(async (identity) => {
+        selectIdentity(identity);
+        observeSignOut();
+        await reconcile();
+      })
+      .catch(reportFailure);
+  }
+
+  function enterSignedOutState() {
+    if (accountIdentity !== null) {
+      accountIdentity = null;
+      identityGeneration += 1;
+      fetchedRecord = null;
+    }
+    callbacks.setAccountIdentity(null);
+    callbacks.setStatus("sign-in");
+    waitForSignIn();
+  }
+
+  function observeSignOut() {
+    if (!container || typeof container.whenUserSignsOut !== "function") return;
+    const observedIdentity = accountIdentity;
+    container.whenUserSignsOut()
+      .then(() => {
+        if (observedIdentity === accountIdentity) enterSignedOutState();
+      })
+      .catch(reportFailure);
+  }
+
+  async function saveForCurrentIdentity(settings) {
+    if (!database || !container) return false;
+    if (!accountIdentity) {
+      callbacks.setStatus("sign-in");
+      return false;
+    }
+
+    const generation = identityGeneration;
+    const expectedIdentity = accountIdentity;
+    const identity = await container.setUpAuth();
+    if (generation !== identityGeneration || expectedIdentity !== accountIdentity) return false;
+    const currentIdentity = identityKey(identity);
+    if (!currentIdentity) {
+      enterSignedOutState();
+      return false;
+    }
+    if (currentIdentity !== accountIdentity) {
+      selectIdentity(identity);
+      observeSignOut();
+      await reconcile();
+      return false;
+    }
+    return saveRecord(settings, generation);
   }
 
   async function start(nextCallbacks) {
@@ -114,15 +217,16 @@
       ],
     });
 
-    const container = root.CloudKit.getDefaultContainer();
+    container = root.CloudKit.getDefaultContainer();
     database = container.privateCloudDatabase;
     const identity = await container.setUpAuth();
     if (!identity) {
-      callbacks.setStatus("sign-in");
-      container.whenUserSignsIn().then(reconcile).catch(reportFailure);
+      enterSignedOutState();
       return;
     }
 
+    selectIdentity(identity);
+    observeSignOut();
     await reconcile();
   }
 
@@ -137,7 +241,7 @@
       return start(nextCallbacks).catch(reportFailure);
     },
     save(settings) {
-      return save(settings).catch(reportFailure);
+      return saveForCurrentIdentity(settings).catch(reportFailure);
     },
   };
 })(window);

@@ -386,6 +386,7 @@
 
     <script src="build-info.js"></script>
     <script src="life-timer-core.js"></script>
+    <script src="settings-storage.js"></script>
     <script src="https://cdn.apple-cloudkit.com/ck/2/cloudkit.js"></script>
     <script src="cloudkit-config.js"></script>
     <script src="cloudkit-settings.js"></script>
@@ -432,15 +433,17 @@
         grid: "rgba(22, 19, 18, 0.18)",
         gridLabel: "rgba(22, 19, 18, 0.42)",
       };
-      const defaultLifetimeStart = new Date(1985, 3, 17, 3, 41, 0, 0);
-      const lifetimeStartStorageKey = "lifeTimerLifetimeStart";
-      const unitPositionStorageKey = "lifeTimerUnitPositionEnabled";
-      const settingsUpdatedAtStorageKey = "lifeTimerSettingsUpdatedAt";
-      const lastSuccessfulSyncStorageKey = "lifeTimerLastSuccessfulSync";
-      let lifetimeStart = readLifetimeStart();
-      let unitPositionEnabled = readUnitPositionEnabled();
-      let settingsUpdatedAt = readSettingsUpdatedAt();
-      let lastSuccessfulSync = readStoredDate(lastSuccessfulSyncStorageKey);
+      const defaultLifetimeStart = LifeTimerWebSettingsStorage.defaultLifetimeStart();
+      const lastSuccessfulSyncStorageKeyPrefix = "lifeTimerLastSuccessfulSync.v1";
+      let cloudAccountIdentity = null;
+      const initialSettings = LifeTimerWebSettingsStorage.load(
+        window.localStorage,
+        settingsStorageScope(),
+      );
+      let lifetimeStart = cloneDate(initialSettings.lifetimeStart);
+      let unitPositionEnabled = initialSettings.unitPositionEnabled;
+      let settingsUpdatedAt = new Date(initialSettings.updatedAt);
+      let lastSuccessfulSync = readStoredDate(lastSuccessfulSyncStorageKey());
       let cloudSyncState = "local";
       let settingsPending = false;
 
@@ -523,45 +526,6 @@
         );
       }
 
-      function readLifetimeStart() {
-        try {
-          const storedValue = window.localStorage.getItem(
-            lifetimeStartStorageKey,
-          );
-          const storedDate = parseDateTimeLocal(storedValue);
-          if (storedDate) return storedDate;
-        } catch (error) {
-          return cloneDate(defaultLifetimeStart);
-        }
-
-        return cloneDate(defaultLifetimeStart);
-      }
-
-      function readUnitPositionEnabled() {
-        try {
-          return (
-            window.localStorage.getItem(unitPositionStorageKey) === "true"
-          );
-        } catch (error) {
-          return false;
-        }
-      }
-
-      function readSettingsUpdatedAt() {
-        try {
-          const value = window.localStorage.getItem(settingsUpdatedAtStorageKey);
-          const date = value ? new Date(value) : null;
-          if (date && !Number.isNaN(date.getTime())) return date;
-          if (
-            window.localStorage.getItem(lifetimeStartStorageKey) !== null ||
-            window.localStorage.getItem(unitPositionStorageKey) !== null
-          ) {
-            return new Date();
-          }
-        } catch (error) {}
-        return new Date(0);
-      }
-
       function readStoredDate(key) {
         try {
           const value = window.localStorage.getItem(key);
@@ -572,11 +536,45 @@
         }
       }
 
+      function lastSuccessfulSyncStorageKey() {
+        const storageScope = settingsStorageScope();
+        const scope = storageScope
+          ? `account.${encodeURIComponent(storageScope)}`
+          : "anonymous";
+        return `${lastSuccessfulSyncStorageKeyPrefix}.${scope}`;
+      }
+
+      function settingsStorageScope() {
+        if (!cloudAccountIdentity) return null;
+        const cloud = window.LIFE_TIMER_CLOUDKIT_CONFIG || {};
+        const container = cloud.containerIdentifier || "unknown-container";
+        const environment = cloud.environment || "production";
+        return JSON.stringify([container, environment, cloudAccountIdentity]);
+      }
+
+      function setCloudAccountIdentity(accountIdentity) {
+        cloudAccountIdentity = typeof accountIdentity === "string" && accountIdentity.trim()
+          ? accountIdentity.trim()
+          : null;
+        const selected = LifeTimerWebSettingsStorage.load(
+          window.localStorage,
+          settingsStorageScope(),
+        );
+        lifetimeStart = cloneDate(selected.lifetimeStart);
+        unitPositionEnabled = selected.unitPositionEnabled;
+        settingsUpdatedAt = new Date(selected.updatedAt);
+        lastSuccessfulSync = readStoredDate(lastSuccessfulSyncStorageKey());
+        settingsPending = false;
+        updateDiagnostics();
+      }
+
       function markSettingsUpdated() {
         settingsUpdatedAt = new Date();
-        try {
-          window.localStorage.setItem(settingsUpdatedAtStorageKey, settingsUpdatedAt.toISOString());
-        } catch (error) {}
+        LifeTimerWebSettingsStorage.save(
+          window.localStorage,
+          settingsStorageScope(),
+          getLocalSettings(),
+        );
         settingsPending = cloudSyncState !== "local";
         updateDiagnostics();
         LifeTimerCloudSync.save(getLocalSettings());
@@ -595,11 +593,11 @@
         lifetimeStart = cloneDate(settings.lifetimeStart);
         unitPositionEnabled = settings.unitPositionEnabled;
         settingsUpdatedAt = new Date(settings.updatedAt);
-        try {
-          window.localStorage.setItem(lifetimeStartStorageKey, formatDateTimeLocal(lifetimeStart));
-          window.localStorage.setItem(unitPositionStorageKey, unitPositionEnabled ? "true" : "false");
-          window.localStorage.setItem(settingsUpdatedAtStorageKey, settingsUpdatedAt.toISOString());
-        } catch (error) {}
+        LifeTimerWebSettingsStorage.save(
+          window.localStorage,
+          settingsStorageScope(),
+          getLocalSettings(),
+        );
         settingsPending = false;
         updateDiagnostics();
       }
@@ -618,7 +616,10 @@
           lastSuccessfulSync = new Date();
           settingsPending = false;
           try {
-            window.localStorage.setItem(lastSuccessfulSyncStorageKey, lastSuccessfulSync.toISOString());
+            window.localStorage.setItem(
+              lastSuccessfulSyncStorageKey(),
+              lastSuccessfulSync.toISOString(),
+            );
           } catch (error) {}
         } else if (status === "local") {
           settingsPending = false;
@@ -651,22 +652,11 @@
 
       function setLifetimeStart(date) {
         lifetimeStart = cloneDate(date);
-
-        try {
-          window.localStorage.setItem(
-            lifetimeStartStorageKey,
-            formatDateTimeLocal(lifetimeStart),
-          );
-        } catch (error) {}
         markSettingsUpdated();
       }
 
       function resetLifetimeStart() {
         lifetimeStart = cloneDate(defaultLifetimeStart);
-
-        try {
-          window.localStorage.removeItem(lifetimeStartStorageKey);
-        } catch (error) {}
         markSettingsUpdated();
       }
 
@@ -718,13 +708,6 @@
 
       function setUnitPositionEnabled(isEnabled) {
         unitPositionEnabled = isEnabled;
-
-        try {
-          window.localStorage.setItem(
-            unitPositionStorageKey,
-            isEnabled ? "true" : "false",
-          );
-        } catch (error) {}
         markSettingsUpdated();
       }
 
@@ -1482,6 +1465,7 @@
       LifeTimerCloudSync.start({
         getLocalSettings,
         applyRemoteSettings,
+        setAccountIdentity: setCloudAccountIdentity,
         setStatus: setCloudSyncStatus,
       });
       render();

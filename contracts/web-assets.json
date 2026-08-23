@@ -12,6 +12,7 @@
     "index.html",
     "life-timer-core.js",
     "nonsense.wav",
+    "settings-storage.js",
     "site.webmanifest"
   ],
   "generatedAssets": ["build-info.js"]

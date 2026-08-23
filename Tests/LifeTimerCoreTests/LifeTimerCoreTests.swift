@@ -4,6 +4,15 @@ import Testing
 
 @Suite("Life Timer calendar parity", .serialized)
 struct LifeTimerCoreTests {
+    @Test("Default lifetime start is one fixed cross-time-zone instant")
+    func defaultLifetimeStartInstant() throws {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let expected = try #require(formatter.date(from: "1985-04-17T08:41:00.000Z"))
+
+        #expect(defaultLifetimeStart == expected)
+    }
+
     @Test("Shared fixtures match Swift calculations")
     func sharedFixtures() throws {
         let fixtureURL = try #require(
@@ -82,7 +91,9 @@ struct LifeTimerCoreTests {
 
         let missingAdapter = FakeCloudSettingsAdapter(remote: nil)
         let missingCoordinator = LifeTimerCloudSettingsCoordinator(adapter: missingAdapter)
-        #expect(try await missingCoordinator.synchronize(local: local) == local)
+        #expect(
+            try await missingCoordinator.synchronize(local: local, for: "test-account") == local
+        )
         #expect(await missingAdapter.savedSettings() == [local])
 
         let newer = LifeTimerSettings(
@@ -92,7 +103,9 @@ struct LifeTimerCoreTests {
         )
         let newerAdapter = FakeCloudSettingsAdapter(remote: newer)
         let newerCoordinator = LifeTimerCloudSettingsCoordinator(adapter: newerAdapter)
-        #expect(try await newerCoordinator.synchronize(local: local) == newer)
+        #expect(
+            try await newerCoordinator.synchronize(local: local, for: "test-account") == newer
+        )
         #expect(await newerAdapter.savedSettings().isEmpty)
 
         let older = LifeTimerSettings(
@@ -102,15 +115,261 @@ struct LifeTimerCoreTests {
         )
         let olderAdapter = FakeCloudSettingsAdapter(remote: older)
         let olderCoordinator = LifeTimerCloudSettingsCoordinator(adapter: olderAdapter)
-        #expect(try await olderCoordinator.synchronize(local: local) == local)
+        #expect(
+            try await olderCoordinator.synchronize(local: local, for: "test-account") == local
+        )
         #expect(await olderAdapter.savedSettings() == [local])
 
         let failingCoordinator = LifeTimerCloudSettingsCoordinator(
             adapter: FakeCloudSettingsAdapter(remote: nil, failure: FakeCloudError.unavailable)
         )
         await #expect(throws: FakeCloudError.self) {
-            _ = try await failingCoordinator.synchronize(local: local)
+            _ = try await failingCoordinator.synchronize(local: local, for: "test-account")
         }
+    }
+
+    @Test("Conditional CloudKit save cannot regress a newer interleaved remote")
+    func cloudKitConditionalSaveRevalidatesRemote() async throws {
+        let initiallyFetched = LifeTimerSettings(
+            lifetimeStart: Date(timeIntervalSince1970: 10),
+            unitPositionEnabled: false,
+            updatedAt: Date(timeIntervalSince1970: 100)
+        )
+        let local = LifeTimerSettings(
+            lifetimeStart: Date(timeIntervalSince1970: 20),
+            unitPositionEnabled: true,
+            updatedAt: Date(timeIntervalSince1970: 200)
+        )
+        let interleavedRemote = LifeTimerSettings(
+            lifetimeStart: Date(timeIntervalSince1970: 30),
+            unitPositionEnabled: false,
+            updatedAt: Date(timeIntervalSince1970: 300)
+        )
+        let adapter = FakeCloudSettingsAdapter(
+            remote: initiallyFetched,
+            remoteBeforeConditionalSave: interleavedRemote
+        )
+        let coordinator = LifeTimerCloudSettingsCoordinator(adapter: adapter)
+
+        #expect(
+            try await coordinator.synchronize(local: local, for: "test-account")
+                == interleavedRemote
+        )
+        #expect(await adapter.savedSettings().isEmpty)
+    }
+
+    @Test("Legacy migration preserves split fields without inventing a winning revision")
+    func splitLegacyMigrationIsUndated() async throws {
+        let suiteName = "LifeTimerCoreTests.SplitLegacy.\(UUID().uuidString)"
+        let legacySuiteName = "LifeTimerCoreTests.SplitLegacy.Standard.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        let legacyDefaults = try #require(UserDefaults(suiteName: legacySuiteName))
+        defer {
+            defaults.removePersistentDomain(forName: suiteName)
+            legacyDefaults.removePersistentDomain(forName: legacySuiteName)
+        }
+
+        defaults.set(true, forKey: LifeTimerSettingsStorage.legacyUnitPositionKey)
+        let legacyStart = Date(timeIntervalSince1970: 123_456)
+        legacyDefaults.set(
+            legacyStart.timeIntervalSinceReferenceDate,
+            forKey: LifeTimerSettingsStorage.legacyLifetimeStartKey
+        )
+        let repository = LifeTimerSettingsRepository(
+            defaults: defaults,
+            legacyDefaults: legacyDefaults,
+            useDefaultCloudCoordinator: false
+        )
+        let migrated = repository.current()
+
+        #expect(migrated.lifetimeStart == legacyStart)
+        #expect(migrated.unitPositionEnabled)
+        #expect(migrated.updatedAt == .distantPast)
+
+        let remote = LifeTimerSettings(
+            lifetimeStart: Date(timeIntervalSince1970: 654_321),
+            unitPositionEnabled: false,
+            updatedAt: Date(timeIntervalSince1970: 100)
+        )
+        let coordinator = LifeTimerCloudSettingsCoordinator(
+            adapter: FakeCloudSettingsAdapter(remote: remote)
+        )
+        #expect(
+            try await coordinator.synchronize(local: migrated, for: "test-account") == remote
+        )
+    }
+
+    @Test("Native caches remain scoped to the active CloudKit identity")
+    func cloudAccountIdentityScopesLocalCache() async throws {
+        let suiteName = "LifeTimerCoreTests.CloudIdentity.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let adapter = MultiAccountFakeCloudSettingsAdapter(activeAccountIdentifier: "account-a")
+        let repository = LifeTimerSettingsRepository(
+            defaults: defaults,
+            legacyDefaults: defaults,
+            cloudCoordinator: LifeTimerCloudSettingsCoordinator(adapter: adapter),
+            useDefaultCloudCoordinator: false
+        )
+
+        await repository.refreshFromCloud()
+        #expect(await adapter.remoteSettings(for: "account-a") == nil)
+
+        let accountASettings = repository.update(
+            lifetimeStart: Date(timeIntervalSince1970: 111_111),
+            unitPositionEnabled: true,
+            now: Date(timeIntervalSince1970: 100)
+        )
+        await repository.refreshFromCloud()
+        #expect(await adapter.remoteSettings(for: "account-a") == accountASettings)
+
+        await adapter.activateAccount("account-b")
+        await repository.refreshFromCloud()
+        let accountBSettings = repository.current()
+        #expect(accountBSettings.lifetimeStart == defaultLifetimeStart)
+        #expect(!accountBSettings.unitPositionEnabled)
+        #expect(accountBSettings.updatedAt == .distantPast)
+        #expect(await adapter.remoteSettings(for: "account-b") == nil)
+        #expect(accountBSettings != accountASettings)
+
+        await adapter.activateAccount("account-a")
+        await repository.refreshFromCloud()
+        #expect(repository.current() == accountASettings)
+    }
+
+    @Test("Pre-verification edits stay anonymous and recoverable")
+    func unownedCacheDoesNotClaimFirstCloudAccount() async throws {
+        let suiteName = "LifeTimerCoreTests.UnownedIdentity.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let offlineRepository = LifeTimerSettingsRepository(
+            defaults: defaults,
+            legacyDefaults: defaults,
+            useDefaultCloudCoordinator: false
+        )
+        let anonymousSettings = offlineRepository.update(
+            lifetimeStart: Date(timeIntervalSince1970: 222_222),
+            unitPositionEnabled: true,
+            now: Date(timeIntervalSince1970: 100)
+        )
+
+        let adapter = MultiAccountFakeCloudSettingsAdapter(activeAccountIdentifier: "account-b")
+        let repository = LifeTimerSettingsRepository(
+            defaults: defaults,
+            legacyDefaults: defaults,
+            cloudCoordinator: LifeTimerCloudSettingsCoordinator(adapter: adapter),
+            useDefaultCloudCoordinator: false
+        )
+
+        await repository.refreshFromCloud()
+
+        #expect(repository.current().lifetimeStart == defaultLifetimeStart)
+        #expect(repository.current().updatedAt == .distantPast)
+        #expect(await adapter.remoteSettings(for: "account-b") == nil)
+        #expect(await adapter.savedSettings(for: "account-b").isEmpty)
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .millisecondsSince1970
+        let unownedData = try #require(
+            defaults.data(forKey: LifeTimerSettingsStorage.unownedLocalKey)
+        )
+        #expect(try decoder.decode(LifeTimerSettings.self, from: unownedData) == anonymousSettings)
+
+        let accountBSettings = repository.update(
+            lifetimeStart: Date(timeIntervalSince1970: 444_444),
+            now: Date(timeIntervalSince1970: 200)
+        )
+        await repository.refreshFromCloud()
+        #expect(await adapter.remoteSettings(for: "account-b") == accountBSettings)
+        let preservedUnownedData = try #require(
+            defaults.data(forKey: LifeTimerSettingsStorage.unownedLocalKey)
+        )
+        #expect(
+            try decoder.decode(LifeTimerSettings.self, from: preservedUnownedData)
+                == anonymousSettings
+        )
+    }
+
+    @Test("Queued settings are reloaded after asynchronous account resolution")
+    func queuedWriteCannotCrossAccountBoundary() async throws {
+        let suiteName = "LifeTimerCoreTests.InFlightIdentity.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let accountASettings = LifeTimerSettings(
+            lifetimeStart: Date(timeIntervalSince1970: 333_333),
+            unitPositionEnabled: true,
+            updatedAt: Date(timeIntervalSince1970: 100)
+        )
+        let adapter = MultiAccountFakeCloudSettingsAdapter(
+            activeAccountIdentifier: "account-a",
+            remoteByAccount: ["account-a": accountASettings]
+        )
+        let repository = LifeTimerSettingsRepository(
+            defaults: defaults,
+            legacyDefaults: defaults,
+            cloudCoordinator: LifeTimerCloudSettingsCoordinator(adapter: adapter),
+            useDefaultCloudCoordinator: false
+        )
+        await repository.refreshFromCloud()
+        #expect(repository.current() == accountASettings)
+
+        await adapter.activateAccount("account-b")
+        let queuedForAccountA = repository.update(
+            unitPositionEnabled: false,
+            now: Date(timeIntervalSince1970: 200)
+        )
+        await repository.refreshFromCloud()
+
+        #expect(await adapter.remoteSettings(for: "account-b") == nil)
+        #expect(repository.current().lifetimeStart == defaultLifetimeStart)
+
+        await adapter.activateAccount("account-a")
+        await repository.refreshFromCloud()
+        #expect(repository.current() == queuedForAccountA)
+        #expect(await adapter.remoteSettings(for: "account-a") == queuedForAccountA)
+    }
+
+    @Test("Expected identity rejects an account switch inside Cloud fetch")
+    func accountSwitchInsideFetchCannotCrossBoundary() async throws {
+        let suiteName = "LifeTimerCoreTests.FetchIdentity.\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let accountASettings = LifeTimerSettings(
+            lifetimeStart: Date(timeIntervalSince1970: 555_555),
+            unitPositionEnabled: true,
+            updatedAt: Date(timeIntervalSince1970: 100)
+        )
+        let adapter = MultiAccountFakeCloudSettingsAdapter(
+            activeAccountIdentifier: "account-a",
+            remoteByAccount: ["account-a": accountASettings]
+        )
+        let repository = LifeTimerSettingsRepository(
+            defaults: defaults,
+            legacyDefaults: defaults,
+            cloudCoordinator: LifeTimerCloudSettingsCoordinator(adapter: adapter),
+            useDefaultCloudCoordinator: false
+        )
+        await repository.refreshFromCloud()
+
+        await adapter.switchAccountDuringNextFetch(to: "account-b")
+        let queuedForAccountA = repository.update(
+            unitPositionEnabled: false,
+            now: Date(timeIntervalSince1970: 200)
+        )
+        await repository.refreshFromCloud()
+
+        #expect(await adapter.remoteSettings(for: "account-b") == nil)
+        #expect(await adapter.savedSettings(for: "account-b").isEmpty)
+        #expect(repository.current().lifetimeStart == defaultLifetimeStart)
+
+        await adapter.activateAccount("account-a")
+        await repository.refreshFromCloud()
+        #expect(repository.current() == queuedForAccountA)
+        #expect(await adapter.remoteSettings(for: "account-a") == queuedForAccountA)
     }
 
     @Test("Sync diagnostics preserve pending writes until a successful adapter round trip")
@@ -118,6 +377,16 @@ struct LifeTimerCoreTests {
         let suiteName = "LifeTimerCoreTests.Diagnostics.\(UUID().uuidString)"
         let defaults = try #require(UserDefaults(suiteName: suiteName))
         defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let identityBootstrap = LifeTimerSettingsRepository(
+            defaults: defaults,
+            legacyDefaults: defaults,
+            cloudCoordinator: LifeTimerCloudSettingsCoordinator(
+                adapter: FakeCloudSettingsAdapter(remote: nil)
+            ),
+            useDefaultCloudCoordinator: false
+        )
+        await identityBootstrap.refreshFromCloud()
 
         let failing = LifeTimerCloudSettingsCoordinator(
             adapter: FakeCloudSettingsAdapter(remote: nil, failure: FakeCloudError.unavailable)
@@ -310,31 +579,121 @@ struct LifeTimerCoreTests {
 }
 
 private enum FakeCloudError: Error {
+    case accountChanged
     case unavailable
 }
 
 private actor FakeCloudSettingsAdapter: LifeTimerCloudSettingsAdapter {
-    private let remote: LifeTimerSettings?
+    private var remote: LifeTimerSettings?
+    private var remoteBeforeConditionalSave: LifeTimerSettings?
     private let failure: FakeCloudError?
     private var saved: [LifeTimerSettings] = []
 
-    init(remote: LifeTimerSettings?, failure: FakeCloudError? = nil) {
+    init(
+        remote: LifeTimerSettings?,
+        failure: FakeCloudError? = nil,
+        remoteBeforeConditionalSave: LifeTimerSettings? = nil
+    ) {
         self.remote = remote
         self.failure = failure
+        self.remoteBeforeConditionalSave = remoteBeforeConditionalSave
     }
 
-    func fetchSettings() async throws -> LifeTimerSettings? {
+    func currentAccountIdentifier() async throws -> String {
+        "test-account"
+    }
+
+    func fetchSettings(for accountIdentifier: String) async throws -> LifeTimerSettings? {
+        guard accountIdentifier == "test-account" else { throw FakeCloudError.accountChanged }
         if let failure { throw failure }
         return remote
     }
 
-    func saveSettings(_ settings: LifeTimerSettings) async throws {
+    func saveSettingsIfNewer(
+        _ settings: LifeTimerSettings,
+        for accountIdentifier: String
+    ) async throws -> LifeTimerSettings {
+        guard accountIdentifier == "test-account" else { throw FakeCloudError.accountChanged }
         if let failure { throw failure }
+        if let remoteBeforeConditionalSave {
+            remote = remoteBeforeConditionalSave
+            self.remoteBeforeConditionalSave = nil
+        }
+        if let remote, remote.updatedAt >= settings.updatedAt {
+            return remote
+        }
         saved.append(settings)
+        remote = settings
+        return settings
     }
 
     func savedSettings() -> [LifeTimerSettings] {
         saved
+    }
+}
+
+private actor MultiAccountFakeCloudSettingsAdapter: LifeTimerCloudSettingsAdapter {
+    private var activeAccountIdentifier: String
+    private var remoteByAccount: [String: LifeTimerSettings] = [:]
+    private var savedByAccount: [String: [LifeTimerSettings]] = [:]
+    private var accountSwitchOnNextFetch: String?
+
+    init(
+        activeAccountIdentifier: String,
+        remoteByAccount: [String: LifeTimerSettings] = [:]
+    ) {
+        self.activeAccountIdentifier = activeAccountIdentifier
+        self.remoteByAccount = remoteByAccount
+    }
+
+    func currentAccountIdentifier() async throws -> String {
+        activeAccountIdentifier
+    }
+
+    func fetchSettings(for accountIdentifier: String) async throws -> LifeTimerSettings? {
+        guard activeAccountIdentifier == accountIdentifier else {
+            throw FakeCloudError.accountChanged
+        }
+        let remote = remoteByAccount[activeAccountIdentifier]
+        if let accountSwitchOnNextFetch {
+            activeAccountIdentifier = accountSwitchOnNextFetch
+            self.accountSwitchOnNextFetch = nil
+        }
+        guard activeAccountIdentifier == accountIdentifier else {
+            throw FakeCloudError.accountChanged
+        }
+        return remote
+    }
+
+    func saveSettingsIfNewer(
+        _ settings: LifeTimerSettings,
+        for accountIdentifier: String
+    ) async throws -> LifeTimerSettings {
+        guard activeAccountIdentifier == accountIdentifier else {
+            throw FakeCloudError.accountChanged
+        }
+        if let remote = remoteByAccount[activeAccountIdentifier], remote.updatedAt >= settings.updatedAt {
+            return remote
+        }
+        savedByAccount[activeAccountIdentifier, default: []].append(settings)
+        remoteByAccount[activeAccountIdentifier] = settings
+        return settings
+    }
+
+    func activateAccount(_ identifier: String) {
+        activeAccountIdentifier = identifier
+    }
+
+    func switchAccountDuringNextFetch(to identifier: String) {
+        accountSwitchOnNextFetch = identifier
+    }
+
+    func remoteSettings(for identifier: String) -> LifeTimerSettings? {
+        remoteByAccount[identifier]
+    }
+
+    func savedSettings(for identifier: String) -> [LifeTimerSettings] {
+        savedByAccount[identifier, default: []]
     }
 }
 

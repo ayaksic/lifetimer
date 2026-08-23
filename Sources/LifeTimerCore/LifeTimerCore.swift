@@ -7,9 +7,7 @@
 
 import Foundation
 
-public let defaultLifetimeStart = LifePeriod.calendar.date(
-    from: DateComponents(year: 1985, month: 4, day: 17, hour: 3, minute: 41)
-)!
+public let defaultLifetimeStart = Date(timeIntervalSince1970: 482_575_260)
 
 public struct TimerPage: Identifiable, Equatable, Sendable {
     public let period: LifePeriod

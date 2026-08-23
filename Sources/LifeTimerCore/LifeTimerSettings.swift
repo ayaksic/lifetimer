@@ -79,6 +79,9 @@ public enum LifeTimerSettingsStorage {
     public static let legacyUnitPositionKey = "lifeTimerUnitPositionEnabled"
     public static let lastSuccessfulSyncKey = "lifeTimer.sync.lastSuccessful.v1"
     public static let pendingRevisionKey = "lifeTimer.sync.pendingRevision.v1"
+    public static let cloudAccountIdentifierKey = "lifeTimer.sync.cloudAccountIdentifier.v1"
+    public static let cloudBootstrapAuthorizedKey = "lifeTimer.sync.cloudBootstrapAuthorized.v1"
+    public static let unownedLocalKey = "lifeTimer.settings.unowned.v1"
 
     public static var appGroupDefaults: UserDefaults {
         UserDefaults(suiteName: appGroupIdentifier) ?? .standard
@@ -97,6 +100,7 @@ public final class LifeTimerSettingsRepository: @unchecked Sendable {
     private let cloudCoordinator: LifeTimerCloudSettingsCoordinator?
     private let lock = NSLock()
     private var started = false
+    private var cloudReconciliationTail: Task<Void, Never>?
     private var syncStatus: LifeTimerSyncDiagnostics.Status
     private var syncDetail: String?
 
@@ -119,6 +123,7 @@ public final class LifeTimerSettingsRepository: @unchecked Sendable {
         self.cloudCoordinator = cloudCoordinator
         self.syncStatus = cloudCoordinator == nil ? .onDevice : .syncing
         #endif
+        self.cloudReconciliationTail = nil
         self.syncDetail = nil
         self.encoder = JSONEncoder()
         self.decoder = JSONDecoder()
@@ -138,9 +143,7 @@ public final class LifeTimerSettingsRepository: @unchecked Sendable {
 
         guard shouldStart else { return }
 
-        Task {
-            await synchronizeFromCloud()
-        }
+        enqueueCloudReconciliation()
     }
 
     public func current() -> LifeTimerSettings {
@@ -178,11 +181,16 @@ public final class LifeTimerSettingsRepository: @unchecked Sendable {
             }
             next.schemaVersion = LifeTimerSettings.currentSchemaVersion
             next.updatedAt = now
-            persist(next)
-            if cloudCoordinator == nil {
-                defaults.removeObject(forKey: LifeTimerSettingsStorage.pendingRevisionKey)
+            if let accountIdentifier = activeCloudAccountIdentifier() {
+                persist(next)
+                setCloudBootstrapAuthorized(true, accountIdentifier: accountIdentifier)
             } else {
-                defaults.set(now.timeIntervalSince1970, forKey: LifeTimerSettingsStorage.pendingRevisionKey)
+                persist(next)
+            }
+            if cloudCoordinator == nil {
+                removeSyncValue(forKey: LifeTimerSettingsStorage.pendingRevisionKey)
+            } else {
+                setSyncDate(now, forKey: LifeTimerSettingsStorage.pendingRevisionKey)
             }
             syncStatus = cloudCoordinator == nil ? .onDevice : .syncing
             syncDetail = nil
@@ -190,9 +198,7 @@ public final class LifeTimerSettingsRepository: @unchecked Sendable {
         }
 
         settingsDidChange(next)
-        Task {
-            await pushToCloud(next)
-        }
+        enqueueCloudReconciliation()
         return next
     }
 
@@ -212,40 +218,61 @@ public final class LifeTimerSettingsRepository: @unchecked Sendable {
     }
 
     public func refreshFromCloud() async {
-        await synchronizeFromCloud()
+        await enqueueCloudReconciliation().value
     }
 
     private func settingsDidChange(_ settings: LifeTimerSettings) {
         notificationCenter.post(name: Self.didChangeNotification, object: self)
     }
 
-    private func synchronizeFromCloud() async {
+    @discardableResult
+    private func enqueueCloudReconciliation() -> Task<Void, Never> {
+        lock.withLock {
+            let previous = cloudReconciliationTail
+            let task = Task { [weak self] in
+                if let previous {
+                    await previous.value
+                }
+                await self?.performCloudReconciliation()
+            }
+            cloudReconciliationTail = task
+            return task
+        }
+    }
+
+    private func performCloudReconciliation() async {
         guard let cloudCoordinator else {
             updateSyncStatus(.onDevice, detail: nil)
             return
         }
 
         updateSyncStatus(.syncing, detail: nil)
-        let local = current()
         do {
-            let resolved = try await cloudCoordinator.synchronize(local: local)
-            _ = merge(resolved)
-            markSyncSucceeded(revision: resolved.updatedAt)
-        } catch {
-            markSyncFailed(error)
-        }
-    }
+            let accountIdentifier = try await cloudCoordinator.currentAccountIdentifier()
+            let preparation = prepareCloudAccount(accountIdentifier)
 
-    private func pushToCloud(_ settings: LifeTimerSettings) async {
-        guard let cloudCoordinator else {
-            updateSyncStatus(.onDevice, detail: nil)
-            return
-        }
-
-        do {
-            let resolved = try await cloudCoordinator.synchronize(local: settings)
-            _ = merge(resolved)
-            markSyncSucceeded(revision: resolved.updatedAt)
+            switch preparation {
+            case .ready(let local):
+                let resolved = try await cloudCoordinator.synchronize(
+                    local: local,
+                    for: accountIdentifier
+                )
+                try await cloudCoordinator.validateCurrentAccount(accountIdentifier)
+                _ = merge(resolved)
+                markSyncSucceeded(revision: resolved.updatedAt)
+            case .remoteOnly:
+                let remote = try await cloudCoordinator.fetchSettings(for: accountIdentifier)
+                try await cloudCoordinator.validateCurrentAccount(accountIdentifier)
+                guard let remote else {
+                    updateSyncStatus(
+                        .onDevice,
+                        detail: "Cloud account has no saved settings"
+                    )
+                    return
+                }
+                replaceLocal(remote, for: accountIdentifier)
+                markSyncSucceeded(revision: remote.updatedAt)
+            }
         } catch {
             markSyncFailed(error)
         }
@@ -253,9 +280,9 @@ public final class LifeTimerSettingsRepository: @unchecked Sendable {
 
     private func markSyncSucceeded(revision: Date) {
         lock.withLock {
-            defaults.set(Date.now.timeIntervalSince1970, forKey: LifeTimerSettingsStorage.lastSuccessfulSyncKey)
+            setSyncDate(Date.now, forKey: LifeTimerSettingsStorage.lastSuccessfulSyncKey)
             if let pending = date(forKey: LifeTimerSettingsStorage.pendingRevisionKey), pending <= revision {
-                defaults.removeObject(forKey: LifeTimerSettingsStorage.pendingRevisionKey)
+                removeSyncValue(forKey: LifeTimerSettingsStorage.pendingRevisionKey)
             }
             syncStatus = .synced
             syncDetail = nil
@@ -281,28 +308,245 @@ public final class LifeTimerSettingsRepository: @unchecked Sendable {
     }
 
     private func migrateLegacySettings() -> LifeTimerSettings {
-        let source = defaults.object(forKey: LifeTimerSettingsStorage.legacyLifetimeStartKey) != nil
-            || defaults.object(forKey: LifeTimerSettingsStorage.legacyUnitPositionKey) != nil
+        let lifetimeStartSource = defaults.object(forKey: LifeTimerSettingsStorage.legacyLifetimeStartKey) != nil
             ? defaults
             : legacyDefaults
-        let hasLifetimeStart = source.object(forKey: LifeTimerSettingsStorage.legacyLifetimeStartKey) != nil
-        let hasUnitPosition = source.object(forKey: LifeTimerSettingsStorage.legacyUnitPositionKey) != nil
+        let unitPositionSource = defaults.object(forKey: LifeTimerSettingsStorage.legacyUnitPositionKey) != nil
+            ? defaults
+            : legacyDefaults
+        let hasLifetimeStart = lifetimeStartSource.object(
+            forKey: LifeTimerSettingsStorage.legacyLifetimeStartKey
+        ) != nil
+        let hasUnitPosition = unitPositionSource.object(
+            forKey: LifeTimerSettingsStorage.legacyUnitPositionKey
+        ) != nil
 
         guard hasLifetimeStart || hasUnitPosition else { return LifeTimerSettings() }
 
         let lifetimeStart = hasLifetimeStart
-            ? Date(timeIntervalSinceReferenceDate: source.double(forKey: LifeTimerSettingsStorage.legacyLifetimeStartKey))
+            ? Date(
+                timeIntervalSinceReferenceDate: lifetimeStartSource.double(
+                    forKey: LifeTimerSettingsStorage.legacyLifetimeStartKey
+                )
+            )
             : defaultLifetimeStart
         return LifeTimerSettings(
             lifetimeStart: lifetimeStart,
-            unitPositionEnabled: source.bool(forKey: LifeTimerSettingsStorage.legacyUnitPositionKey),
-            updatedAt: .now
+            unitPositionEnabled: hasUnitPosition
+                ? unitPositionSource.bool(forKey: LifeTimerSettingsStorage.legacyUnitPositionKey)
+                : false,
+            updatedAt: .distantPast
         )
     }
 
     private func persist(_ settings: LifeTimerSettings) {
         guard let data = try? encoder.encode(settings) else { return }
         defaults.set(data, forKey: LifeTimerSettingsStorage.localKey)
+        if let accountIdentifier = activeCloudAccountIdentifier() {
+            defaults.set(
+                data,
+                forKey: accountScopedKey(
+                    LifeTimerSettingsStorage.localKey,
+                    accountIdentifier: accountIdentifier
+                )
+            )
+        }
+    }
+
+    private enum CloudAccountPreparation {
+        case ready(LifeTimerSettings)
+        case remoteOnly
+    }
+
+    private func prepareCloudAccount(_ accountIdentifier: String) -> CloudAccountPreparation {
+        lock.withLock {
+            let local = readLocal() ?? migrateLegacySettings()
+
+            guard let activeAccountIdentifier = activeCloudAccountIdentifier() else {
+                preserveUnownedProjection(local)
+                return activateCloudAccount(accountIdentifier)
+            }
+
+            guard activeAccountIdentifier != accountIdentifier else {
+                return cloudBootstrapAuthorized()
+                    ? .ready(local)
+                    : .remoteOnly
+            }
+
+            saveCurrentProjection(for: activeAccountIdentifier)
+            return activateCloudAccount(accountIdentifier)
+        }
+    }
+
+    private func preserveUnownedProjection(_ settings: LifeTimerSettings) {
+        guard let data = try? encoder.encode(settings) else { return }
+        defaults.set(data, forKey: LifeTimerSettingsStorage.unownedLocalKey)
+    }
+
+    private func activateCloudAccount(_ accountIdentifier: String) -> CloudAccountPreparation {
+        defaults.set(
+            accountIdentifier,
+            forKey: LifeTimerSettingsStorage.cloudAccountIdentifierKey
+        )
+
+        if let restored = restoreProjection(for: accountIdentifier) {
+            return cloudBootstrapAuthorized()
+                ? .ready(restored)
+                : .remoteOnly
+        }
+
+        removeSyncValue(forKey: LifeTimerSettingsStorage.lastSuccessfulSyncKey)
+        removeSyncValue(forKey: LifeTimerSettingsStorage.pendingRevisionKey)
+        let initial = LifeTimerSettings()
+        persist(initial)
+        setCloudBootstrapAuthorized(false, accountIdentifier: accountIdentifier)
+        return .remoteOnly
+    }
+
+    private func replaceLocal(_ settings: LifeTimerSettings, for accountIdentifier: String) {
+        lock.withLock {
+            if let activeAccountIdentifier = activeCloudAccountIdentifier() {
+                if activeAccountIdentifier != accountIdentifier {
+                    saveCurrentProjection(for: activeAccountIdentifier)
+                }
+            } else if let data = defaults.data(forKey: LifeTimerSettingsStorage.localKey) {
+                defaults.set(data, forKey: LifeTimerSettingsStorage.unownedLocalKey)
+            }
+            defaults.set(
+                accountIdentifier,
+                forKey: LifeTimerSettingsStorage.cloudAccountIdentifierKey
+            )
+            removeSyncValue(forKey: LifeTimerSettingsStorage.lastSuccessfulSyncKey)
+            removeSyncValue(forKey: LifeTimerSettingsStorage.pendingRevisionKey)
+            persist(settings)
+            setCloudBootstrapAuthorized(true, accountIdentifier: accountIdentifier)
+        }
+        settingsDidChange(settings)
+    }
+
+    private func saveCurrentProjection(for accountIdentifier: String) {
+        if let data = defaults.data(forKey: LifeTimerSettingsStorage.localKey) {
+            defaults.set(
+                data,
+                forKey: accountScopedKey(
+                    LifeTimerSettingsStorage.localKey,
+                    accountIdentifier: accountIdentifier
+                )
+            )
+        }
+        mirrorSyncValue(
+            forKey: LifeTimerSettingsStorage.lastSuccessfulSyncKey,
+            accountIdentifier: accountIdentifier
+        )
+        mirrorSyncValue(
+            forKey: LifeTimerSettingsStorage.pendingRevisionKey,
+            accountIdentifier: accountIdentifier
+        )
+        let scopedAuthorizationKey = accountScopedKey(
+            LifeTimerSettingsStorage.cloudBootstrapAuthorizedKey,
+            accountIdentifier: accountIdentifier
+        )
+        defaults.set(
+            defaults.bool(forKey: LifeTimerSettingsStorage.cloudBootstrapAuthorizedKey),
+            forKey: scopedAuthorizationKey
+        )
+    }
+
+    private func restoreProjection(for accountIdentifier: String) -> LifeTimerSettings? {
+        let settingsKey = accountScopedKey(
+            LifeTimerSettingsStorage.localKey,
+            accountIdentifier: accountIdentifier
+        )
+        guard let data = defaults.data(forKey: settingsKey),
+              let settings = try? decoder.decode(LifeTimerSettings.self, from: data) else {
+            return nil
+        }
+
+        defaults.set(data, forKey: LifeTimerSettingsStorage.localKey)
+        restoreSyncValue(
+            forKey: LifeTimerSettingsStorage.lastSuccessfulSyncKey,
+            accountIdentifier: accountIdentifier
+        )
+        restoreSyncValue(
+            forKey: LifeTimerSettingsStorage.pendingRevisionKey,
+            accountIdentifier: accountIdentifier
+        )
+        let scopedAuthorizationKey = accountScopedKey(
+            LifeTimerSettingsStorage.cloudBootstrapAuthorizedKey,
+            accountIdentifier: accountIdentifier
+        )
+        defaults.set(
+            defaults.bool(forKey: scopedAuthorizationKey),
+            forKey: LifeTimerSettingsStorage.cloudBootstrapAuthorizedKey
+        )
+        return settings
+    }
+
+    private func activeCloudAccountIdentifier() -> String? {
+        defaults.string(forKey: LifeTimerSettingsStorage.cloudAccountIdentifierKey)
+    }
+
+    private func cloudBootstrapAuthorized() -> Bool {
+        defaults.bool(forKey: LifeTimerSettingsStorage.cloudBootstrapAuthorizedKey)
+    }
+
+    private func setCloudBootstrapAuthorized(
+        _ authorized: Bool,
+        accountIdentifier: String
+    ) {
+        defaults.set(
+            authorized,
+            forKey: LifeTimerSettingsStorage.cloudBootstrapAuthorizedKey
+        )
+        defaults.set(
+            authorized,
+            forKey: accountScopedKey(
+                LifeTimerSettingsStorage.cloudBootstrapAuthorizedKey,
+                accountIdentifier: accountIdentifier
+            )
+        )
+    }
+
+    private func setSyncDate(_ date: Date, forKey key: String) {
+        defaults.set(date.timeIntervalSince1970, forKey: key)
+        if let accountIdentifier = activeCloudAccountIdentifier() {
+            defaults.set(
+                date.timeIntervalSince1970,
+                forKey: accountScopedKey(key, accountIdentifier: accountIdentifier)
+            )
+        }
+    }
+
+    private func removeSyncValue(forKey key: String) {
+        defaults.removeObject(forKey: key)
+        if let accountIdentifier = activeCloudAccountIdentifier() {
+            defaults.removeObject(
+                forKey: accountScopedKey(key, accountIdentifier: accountIdentifier)
+            )
+        }
+    }
+
+    private func mirrorSyncValue(forKey key: String, accountIdentifier: String) {
+        let scopedKey = accountScopedKey(key, accountIdentifier: accountIdentifier)
+        if let value = defaults.object(forKey: key) {
+            defaults.set(value, forKey: scopedKey)
+        } else {
+            defaults.removeObject(forKey: scopedKey)
+        }
+    }
+
+    private func restoreSyncValue(forKey key: String, accountIdentifier: String) {
+        let scopedKey = accountScopedKey(key, accountIdentifier: accountIdentifier)
+        if let value = defaults.object(forKey: scopedKey) {
+            defaults.set(value, forKey: key)
+        } else {
+            defaults.removeObject(forKey: key)
+        }
+    }
+
+    private func accountScopedKey(_ key: String, accountIdentifier: String) -> String {
+        let encodedAccount = Data(accountIdentifier.utf8).base64EncodedString()
+        return "\(key).account.\(encodedAccount)"
     }
 
     private func date(forKey key: String) -> Date? {
