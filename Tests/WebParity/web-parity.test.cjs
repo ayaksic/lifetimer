@@ -5,6 +5,7 @@ const core = require("../../Web/life-timer-core.js");
 
 const fixturePath = path.join(__dirname, "../LifeTimerCoreTests/Fixtures/progress-v1.json");
 const fixtures = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
+const webSource = fs.readFileSync(path.join(__dirname, "../../Web/index.html"), "utf8");
 
 for (const fixture of fixtures) {
   assert.equal(
@@ -23,5 +24,16 @@ for (const fixture of fixtures) {
     `${fixture.name}: unit position`,
   );
 }
+
+const panelRule = webSource.match(/\.lifetime-panel \{[\s\S]*?\n      \}/)?.[0] ?? "";
+const labelRule = webSource.match(/\.lifetime-panel label \{[\s\S]*?\n      \}/)?.[0] ?? "";
+const actionsRule = webSource.match(/\.lifetime-actions \{[\s\S]*?\n      \}/)?.[0] ?? "";
+
+assert.match(panelRule, /display: grid;/);
+assert.match(panelRule, /gap: 0\.5rem;/);
+assert.match(labelRule, /margin: 0;/);
+assert.doesNotMatch(labelRule, /margin-bottom:/);
+assert.match(actionsRule, /margin: 0;/);
+assert.doesNotMatch(actionsRule, /margin-top:/);
 
 console.log(`Web parity: ${fixtures.length} fixtures passed`);
