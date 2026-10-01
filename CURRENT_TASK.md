@@ -49,3 +49,9 @@ Add independently controlled overlays to the iPhone/iPad app: HealthKit time in 
 - Push to `main` triggers the repository's GitHub Pages deployment; live commit identity is read back separately from device proof.
 - Physical installation is verified with a signed build, install receipt, launch result, and running process.
 - Family Controls development/distribution signing depends on Apple provisioning approval for both the host and report extension bundle IDs. A provisioning rejection is an external installation blocker, not permission to replace the privacy-preserving report extension with an unsupported data path.
+
+## 2026-10-01 retrospective semantic-version baseline
+
+- Local version-only adoption; rationale and reviewed HEAD are in `docs/VERSION_BASELINE.md`. `Version.xcconfig` is authoritative; derived surfaces are checked with `python3 scripts/sync-version.py --check`.
+- Full scripts/verify-all.sh passed; four native built app bundles read back 1.7.4, generated web assembly passed.
+- No commit, push, deployment, installation, credentials, or live data/library operation performed.

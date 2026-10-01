@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
+python3 scripts/sync-version.py --check
 
 echo "[1/9] Security and private-data history scan"
 node scripts/security-check.mjs --history
