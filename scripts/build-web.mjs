@@ -78,7 +78,7 @@ function buildIdentity(options) {
   const commit = options.commit || gitCommit();
   const environment = options.environment || "local-source";
   return {
-    version: "web",
+    version: readFileSync(join(root, "Version.xcconfig"), "utf8").match(/^APP_RELEASE_VERSION = (\d+\.\d+\.\d+)$/m)[1],
     build: process.env.GITHUB_RUN_NUMBER || "source",
     commit,
     environment,

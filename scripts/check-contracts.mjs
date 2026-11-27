@@ -157,7 +157,8 @@ for (const project of [iOSProject, watchProject]) {
   const versions = [...project.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map((match) => match[1].trim());
   const marketing = [...project.matchAll(/MARKETING_VERSION = ([^;]+);/g)].map((match) => match[1].trim());
   assert(new Set(versions).size === 1, "native CURRENT_PROJECT_VERSION values must match within each project");
-  assert(new Set(marketing).size === 1, "native MARKETING_VERSION values must match within each project");
+  assert(marketing.length > 0 && marketing.every(value => value === '"$(APP_RELEASE_VERSION)"'), "native marketing versions must derive from the application source");
+  assert(project.includes("Version.xcconfig") && /^APP_RELEASE_VERSION = \d+\.\d+\.\d+$/m.test(read("Version.xcconfig")), "semantic version source missing");
 }
 assert(iOSProject.includes("Embed Life Timer Build Info") && watchProject.includes("Embed Life Timer Build Info"), "native build identity phase missing");
 

@@ -49,3 +49,20 @@ Add independently controlled overlays to the iPhone/iPad app: HealthKit time in 
 - Push to `main` triggers the repository's GitHub Pages deployment; live commit identity is read back separately from device proof.
 - Physical installation is verified with a signed build, install receipt, launch result, and running process.
 - Family Controls development/distribution signing depends on Apple provisioning approval for both the host and report extension bundle IDs. A provisioning rejection is an external installation blocker, not permission to replace the privacy-preserving report extension with an unsupported data path.
+
+## 2026-10-01 retrospective semantic-version baseline
+
+- Local version-only adoption; rationale and reviewed HEAD are in `docs/VERSION_BASELINE.md`. `Version.xcconfig` is authoritative; derived surfaces are checked with `python3 scripts/sync-version.py --check`.
+- Full scripts/verify-all.sh passed; four native built app bundles read back 1.7.4, generated web assembly passed.
+- No commit, push, deployment, installation, credentials, or live data/library operation performed.
+
+
+## CloudKit allowed-origin review — 2026-10-22
+
+Status: verified as intended; no configuration, credential, deployment, or data change required.
+
+- Owner-signed-in Console: `iCloud.yaksic.lifetimer`, Production, existing Life Timer Web token. Only the following domain(s) selected; exactly `https://ayaksic.github.io`; Any Domain off. Post Message callback unchanged. Save Changes remained disabled; exited details with Cancel.
+- Selected Console token matches local source by fingerprint; publicly deployed config matches the local token/container/environment. No token or session value retained in evidence.
+- Seven anonymous identity-endpoint GETs: expected HTTPS Origin reaches AUTHENTICATION_REQUIRED with or without Referer; unrelated, lookalike, HTTP and missing-origin requests fail AUTHENTICATION_FAILED, including unrelated Origin paired with expected Referer. No cookies/user token, record queries, private timer settings, HealthKit or Screen Time data accessed.
+- No application source, version, configuration, schema or credentials changed; no commit, push, deployment or installation. The full application gate was not rerun for this read-only configuration review. Existing task history and unrelated work preserved.
+- Evidence: `/Users/andrew/Documents/Codex/2026-10-22/lifetimer-cloudkit-origin-review/RESULTS.md`.

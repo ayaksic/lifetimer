@@ -71,6 +71,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A01234567890ABCDEF012345 /* Version.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "../../Version.xcconfig"; sourceTree = SOURCE_ROOT; };
 		49B36C9A2FAAB39C00292CF7 /* lifetimer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = lifetimer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		49B36CA02FAAB39C00292CF7 /* lifetimer Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "lifetimer Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		49B36CAF2FAAB39D00292CF7 /* lifetimer Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "lifetimer Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -451,6 +452,7 @@
 /* Begin XCBuildConfiguration section */
 		49B36CC12FAAB39D00292CF7 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A01234567890ABCDEF012345 /* Version.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -512,6 +514,7 @@
 		};
 		49B36CC22FAAB39D00292CF7 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A01234567890ABCDEF012345 /* Version.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -565,6 +568,7 @@
 		};
 		49B36CC42FAAB39D00292CF7 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A01234567890ABCDEF012345 /* Version.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -591,7 +595,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = "$(APP_RELEASE_VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = yaksic.lifetimer.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -609,6 +613,7 @@
 		};
 		49B36CC52FAAB39D00292CF7 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A01234567890ABCDEF012345 /* Version.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -635,7 +640,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = "$(APP_RELEASE_VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = yaksic.lifetimer.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -654,12 +659,13 @@
 		};
 		49B36CC82FAAB39D00292CF7 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A01234567890ABCDEF012345 /* Version.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = J5UXQQS99D;
 				INFOPLIST_KEY_CFBundleDisplayName = "Life Timer";
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = "$(APP_RELEASE_VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = yaksic.lifetimer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -671,12 +677,13 @@
 		};
 		49B36CC92FAAB39D00292CF7 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A01234567890ABCDEF012345 /* Version.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = J5UXQQS99D;
 				INFOPLIST_KEY_CFBundleDisplayName = "Life Timer";
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = "$(APP_RELEASE_VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = yaksic.lifetimer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -689,12 +696,13 @@
 		};
 		49B36CCB2FAAB39D00292CF7 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A01234567890ABCDEF012345 /* Version.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 4;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = "$(APP_RELEASE_VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = "yaksic.lifetimer-Watch-AppTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -711,12 +719,13 @@
 		};
 		49B36CCC2FAAB39D00292CF7 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A01234567890ABCDEF012345 /* Version.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 4;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = "$(APP_RELEASE_VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = "yaksic.lifetimer-Watch-AppTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -734,11 +743,12 @@
 		};
 		49B36CCE2FAAB39D00292CF7 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A01234567890ABCDEF012345 /* Version.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 4;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = "$(APP_RELEASE_VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = "yaksic.lifetimer-Watch-AppUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -755,11 +765,12 @@
 		};
 		49B36CCF2FAAB39D00292CF7 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A01234567890ABCDEF012345 /* Version.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 4;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = "$(APP_RELEASE_VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = "yaksic.lifetimer-Watch-AppUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -777,6 +788,7 @@
 		};
 		49B36CDA2FAAC00000292CF7 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A01234567890ABCDEF012345 /* Version.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -792,7 +804,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = "$(APP_RELEASE_VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = yaksic.lifetimer.watchkitapp.widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -810,6 +822,7 @@
 		};
 		49B36CDB2FAAC00000292CF7 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A01234567890ABCDEF012345 /* Version.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -825,7 +838,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = "$(APP_RELEASE_VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = yaksic.lifetimer.watchkitapp.widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
